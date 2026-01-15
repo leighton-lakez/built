@@ -320,9 +320,14 @@ function Hero() {
           </div>
         )}
 
-        {/* Mobile background alternative */}
+        {/* Mobile background alternative - with animated orb */}
         {isMobile && (
-          <div className="absolute inset-0 z-0 bg-gradient-to-br from-blue-900/20 via-black to-blue-900/10" />
+          <div className="absolute inset-0 z-0">
+            <div className="absolute inset-0 bg-gradient-to-br from-blue-900/20 via-black to-blue-900/10" />
+            {/* Glowing orb for mobile */}
+            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-48 h-48 rounded-full bg-gradient-to-br from-blue-500/40 to-blue-600/20 blur-3xl animate-pulse" />
+            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-32 h-32 rounded-full bg-blue-400/30 blur-2xl" />
+          </div>
         )}
 
         {/* Gradient overlays */}
@@ -1251,75 +1256,67 @@ function QuizCTA({ onStartQuiz }) {
 function FallingRaspberry({ index, scrollProgress, total, isMobile }) {
   // Randomized properties for each raspberry
   const seed = index * 137.5
-  const startX = ((index % 7) - 3) * (isMobile ? 12 : 15) + (Math.sin(seed) * (isMobile ? 6 : 10)) // Spread across screen
-  const startY = -15 - (index % 5) * 8 // Staggered start heights above viewport
-  const endY = 120 + (index % 4) * 10 // End below viewport
-  const rotation = (index % 2 === 0 ? 1 : -1) * (180 + (index % 3) * 90) // Reduced rotation
-  const size = isMobile ? (25 + (index % 3) * 10) : (40 + (index % 4) * 15) // Smaller on mobile
-  const delay = (index / total) * 0.5 // Staggered timing
+  const startX = ((index % 7) - 3) * (isMobile ? 12 : 15) + (Math.sin(seed) * (isMobile ? 6 : 10))
+  const startY = -15 - (index % 5) * 8
+  const endY = 120 + (index % 4) * 10
+  const rotation = (index % 2 === 0 ? 1 : -1) * (180 + (index % 3) * 90)
+  const size = isMobile ? (20 + (index % 3) * 8) : (40 + (index % 4) * 15)
+  const delay = (index / total) * 0.5
 
-  // Calculate progress for this specific raspberry
   const adjustedProgress = Math.max(0, Math.min(1, (scrollProgress - delay) / (1 - delay)))
-
-  // Eased progress for smooth animation
   const easedProgress = 1 - Math.pow(1 - adjustedProgress, 2)
-
-  // Calculate current position
   const currentY = startY + (endY - startY) * easedProgress
   const currentRotation = rotation * easedProgress
-  const wobbleX = Math.sin(easedProgress * Math.PI * 3 + index) * 8 // Gentle side-to-side wobble
+  const wobbleX = isMobile ? 0 : Math.sin(easedProgress * Math.PI * 3 + index) * 8
+
+  // Simple CSS transform for better mobile performance
+  const transform = `translate(${wobbleX}px, 0) rotate(${currentRotation}deg)`
 
   return (
-    <motion.div
-      className="absolute pointer-events-none"
+    <div
+      className="absolute pointer-events-none will-change-transform"
       style={{
         left: `${50 + startX}%`,
         top: `${currentY}%`,
-        x: wobbleX,
-        rotate: currentRotation,
         width: size,
         height: size,
+        transform,
       }}
     >
-      {/* Raspberry SVG */}
-      <svg viewBox="0 0 100 100" className="w-full h-full drop-shadow-lg" style={{ filter: 'drop-shadow(0 0 10px rgba(59, 130, 246, 0.5))' }}>
-        {/* Main berry body - cluster of drupelets */}
-        <defs>
-          <radialGradient id={`berryGrad${index}`} cx="30%" cy="30%">
-            <stop offset="0%" stopColor="#60a5fa" />
-            <stop offset="50%" stopColor="#3b82f6" />
-            <stop offset="100%" stopColor="#1d4ed8" />
-          </radialGradient>
-          <radialGradient id={`drupeletGrad${index}`} cx="30%" cy="30%">
-            <stop offset="0%" stopColor="#93c5fd" />
-            <stop offset="70%" stopColor="#3b82f6" />
-            <stop offset="100%" stopColor="#1e40af" />
-          </radialGradient>
-        </defs>
-
-        {/* Berry drupelets (the bumpy parts) */}
-        <circle cx="50" cy="35" r="12" fill={`url(#drupeletGrad${index})`} />
-        <circle cx="35" cy="45" r="11" fill={`url(#drupeletGrad${index})`} />
-        <circle cx="65" cy="45" r="11" fill={`url(#drupeletGrad${index})`} />
-        <circle cx="42" cy="58" r="12" fill={`url(#drupeletGrad${index})`} />
-        <circle cx="58" cy="58" r="12" fill={`url(#drupeletGrad${index})`} />
-        <circle cx="50" cy="72" r="11" fill={`url(#drupeletGrad${index})`} />
-        <circle cx="30" cy="60" r="9" fill={`url(#drupeletGrad${index})`} />
-        <circle cx="70" cy="60" r="9" fill={`url(#drupeletGrad${index})`} />
-        <circle cx="38" cy="75" r="8" fill={`url(#drupeletGrad${index})`} />
-        <circle cx="62" cy="75" r="8" fill={`url(#drupeletGrad${index})`} />
-
-        {/* Highlight reflections */}
-        <circle cx="45" cy="32" r="4" fill="rgba(255,255,255,0.4)" />
-        <circle cx="55" cy="55" r="3" fill="rgba(255,255,255,0.3)" />
-
-        {/* Stem/leaves at top */}
-        <ellipse cx="50" cy="20" rx="8" ry="5" fill="#22c55e" />
-        <ellipse cx="42" cy="18" rx="6" ry="4" fill="#16a34a" transform="rotate(-20 42 18)" />
-        <ellipse cx="58" cy="18" rx="6" ry="4" fill="#16a34a" transform="rotate(20 58 18)" />
-        <rect x="48" y="10" width="4" height="12" rx="2" fill="#15803d" />
-      </svg>
-    </motion.div>
+      {/* Simplified raspberry for mobile, detailed for desktop */}
+      {isMobile ? (
+        // Simple circle with gradient for mobile
+        <div
+          className="w-full h-full rounded-full"
+          style={{
+            background: 'radial-gradient(circle at 30% 30%, #93c5fd 0%, #3b82f6 50%, #1e40af 100%)',
+            boxShadow: '0 0 15px rgba(59, 130, 246, 0.5)',
+          }}
+        />
+      ) : (
+        // Full SVG raspberry for desktop
+        <svg viewBox="0 0 100 100" className="w-full h-full" style={{ filter: 'drop-shadow(0 0 10px rgba(59, 130, 246, 0.5))' }}>
+          <defs>
+            <radialGradient id={`drupeletGrad${index}`} cx="30%" cy="30%">
+              <stop offset="0%" stopColor="#93c5fd" />
+              <stop offset="70%" stopColor="#3b82f6" />
+              <stop offset="100%" stopColor="#1e40af" />
+            </radialGradient>
+          </defs>
+          <circle cx="50" cy="35" r="12" fill={`url(#drupeletGrad${index})`} />
+          <circle cx="35" cy="45" r="11" fill={`url(#drupeletGrad${index})`} />
+          <circle cx="65" cy="45" r="11" fill={`url(#drupeletGrad${index})`} />
+          <circle cx="42" cy="58" r="12" fill={`url(#drupeletGrad${index})`} />
+          <circle cx="58" cy="58" r="12" fill={`url(#drupeletGrad${index})`} />
+          <circle cx="50" cy="72" r="11" fill={`url(#drupeletGrad${index})`} />
+          <circle cx="30" cy="60" r="9" fill={`url(#drupeletGrad${index})`} />
+          <circle cx="70" cy="60" r="9" fill={`url(#drupeletGrad${index})`} />
+          <circle cx="45" cy="32" r="4" fill="rgba(255,255,255,0.4)" />
+          <ellipse cx="50" cy="20" rx="8" ry="5" fill="#22c55e" />
+          <rect x="48" y="10" width="4" height="12" rx="2" fill="#15803d" />
+        </svg>
+      )}
+    </div>
   )
 }
 
@@ -1328,6 +1325,7 @@ function UnboxingSection() {
   const containerRef = useRef(null)
   const [scrollProgress, setScrollProgress] = useState(0)
   const isMobile = useIsMobile()
+  const lastUpdate = useRef(0)
 
   const { scrollYProgress } = useScroll({
     target: containerRef,
@@ -1336,10 +1334,14 @@ function UnboxingSection() {
 
   useEffect(() => {
     const unsubscribe = scrollYProgress.on('change', (v) => {
+      // Throttle updates on mobile for better performance
+      const now = Date.now()
+      if (isMobile && now - lastUpdate.current < 50) return // ~20fps on mobile
+      lastUpdate.current = now
       setScrollProgress(v)
     })
     return () => unsubscribe()
-  }, [scrollYProgress])
+  }, [scrollYProgress, isMobile])
 
   const textOpacity = useTransform(scrollYProgress, [0.7, 0.85], [0, 1])
   const textY = useTransform(scrollYProgress, [0.7, 0.85], [50, 0])
@@ -1347,8 +1349,8 @@ function UnboxingSection() {
   const titleScale = useTransform(scrollYProgress, [0, 0.3], [0.8, 1])
   const titleOpacity = useTransform(scrollYProgress, [0, 0.15], [0, 1])
 
-  // Reduced count on mobile for performance
-  const raspberryCount = isMobile ? 10 : 25
+  // Reduced count on mobile for performance - 6 simple circles
+  const raspberryCount = isMobile ? 6 : 25
 
   return (
     <section ref={containerRef} className="h-[200vh] md:h-[300vh] relative">
