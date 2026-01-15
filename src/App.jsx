@@ -320,13 +320,22 @@ function Hero() {
           </div>
         )}
 
-        {/* Mobile background alternative - with animated orb */}
+        {/* Mobile background alternative - with wobbly blob */}
         {isMobile && (
           <div className="absolute inset-0 z-0">
             <div className="absolute inset-0 bg-gradient-to-br from-blue-900/20 via-black to-blue-900/10" />
-            {/* Glowing orb for mobile */}
-            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-48 h-48 rounded-full bg-gradient-to-br from-blue-500/40 to-blue-600/20 blur-3xl animate-pulse" />
-            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-32 h-32 rounded-full bg-blue-400/30 blur-2xl" />
+            {/* Glow behind blob */}
+            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-64 h-64 rounded-full bg-blue-500/30 blur-3xl" />
+            {/* Wobbly gummy blob */}
+            <div
+              className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-40 h-40"
+              style={{
+                background: 'radial-gradient(ellipse at 30% 30%, #60a5fa 0%, #3b82f6 40%, #1d4ed8 70%, #1e3a8a 100%)',
+                borderRadius: '60% 40% 50% 50% / 50% 60% 40% 50%',
+                animation: 'wobble 4s ease-in-out infinite',
+                boxShadow: '0 0 60px rgba(59, 130, 246, 0.5), inset 0 0 30px rgba(255,255,255,0.1)',
+              }}
+            />
           </div>
         )}
 
