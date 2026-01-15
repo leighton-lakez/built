@@ -415,6 +415,7 @@ function MarqueeSection() {
 // Product Section with actual image
 function ProductSection() {
   const ref = useRef(null)
+  const isMobile = useIsMobile()
   const { scrollYProgress } = useScroll({
     target: ref,
     offset: ['start end', 'end start']
@@ -433,8 +434,8 @@ function ProductSection() {
               {/* Glow effect behind product */}
               <div className="absolute inset-0 bg-blue-500/30 blur-[100px] rounded-full scale-90" />
 
-              {/* Pulsing energy rings */}
-              {[...Array(3)].map((_, i) => (
+              {/* Pulsing energy rings - desktop only */}
+              {!isMobile && [...Array(3)].map((_, i) => (
                 <motion.div
                   key={`ring-${i}`}
                   className="absolute inset-0 border-2 border-blue-400/30 rounded-full"
@@ -462,20 +463,24 @@ function ProductSection() {
               <div className="absolute -bottom-6 -left-6 w-12 h-12 border-l-2 border-b-2 border-blue-400 rounded-bl-xl" />
               <div className="absolute -bottom-6 -right-6 w-12 h-12 border-r-2 border-b-2 border-blue-400 rounded-br-xl" />
 
-              {/* Rotating rings */}
-              <motion.div
-                animate={{ rotate: 360 }}
-                transition={{ duration: 20, repeat: Infinity, ease: 'linear' }}
-                className="absolute inset-0 border border-blue-400/20 rounded-full scale-150"
-              />
-              <motion.div
-                animate={{ rotate: -360 }}
-                transition={{ duration: 30, repeat: Infinity, ease: 'linear' }}
-                className="absolute inset-0 border border-blue-400/10 rounded-full scale-[1.8]"
-              />
+              {/* Rotating rings - desktop only */}
+              {!isMobile && (
+                <>
+                  <motion.div
+                    animate={{ rotate: 360 }}
+                    transition={{ duration: 20, repeat: Infinity, ease: 'linear' }}
+                    className="absolute inset-0 border border-blue-400/20 rounded-full scale-150"
+                  />
+                  <motion.div
+                    animate={{ rotate: -360 }}
+                    transition={{ duration: 30, repeat: Infinity, ease: 'linear' }}
+                    className="absolute inset-0 border border-blue-400/10 rounded-full scale-[1.8]"
+                  />
+                </>
+              )}
 
-              {/* Floating particles rising up */}
-              {[...Array(12)].map((_, i) => (
+              {/* Floating particles rising up - desktop only */}
+              {!isMobile && [...Array(12)].map((_, i) => (
                 <motion.div
                   key={`particle-${i}`}
                   className="absolute w-1 h-1 bg-blue-400 rounded-full"
@@ -498,8 +503,8 @@ function ProductSection() {
                 />
               ))}
 
-              {/* Electric sparks */}
-              {[...Array(6)].map((_, i) => (
+              {/* Electric sparks - desktop only */}
+              {!isMobile && [...Array(6)].map((_, i) => (
                 <motion.div
                   key={`spark-${i}`}
                   className="absolute w-8 h-0.5 bg-gradient-to-r from-transparent via-blue-400 to-transparent"
@@ -521,8 +526,8 @@ function ProductSection() {
                 />
               ))}
 
-              {/* Orbiting dots */}
-              {[...Array(8)].map((_, i) => (
+              {/* Orbiting dots - desktop only */}
+              {!isMobile && [...Array(8)].map((_, i) => (
                 <motion.div
                   key={`dot-${i}`}
                   className="absolute w-2 h-2 bg-blue-400 rounded-full"
@@ -1322,7 +1327,7 @@ function QuizCTA({ onStartQuiz }) {
 }
 
 // Single Falling Raspberry Component - GPU accelerated
-function FallingRaspberry({ index, scrollYProgress, total }) {
+function FallingRaspberry({ index, scrollYProgress, total, isMobile }) {
   const seed = index * 137.5
   const startX = ((index % 7) - 3) * 15 + (Math.sin(seed) * 10)
   const startYvh = -15 - (index % 5) * 8
@@ -1351,7 +1356,7 @@ function FallingRaspberry({ index, scrollYProgress, total }) {
         height: size,
         transform,
         willChange: 'transform',
-        filter: 'drop-shadow(0 0 10px rgba(59, 130, 246, 0.5))',
+        filter: isMobile ? 'none' : 'drop-shadow(0 0 10px rgba(59, 130, 246, 0.5))',
       }}
     >
       <svg viewBox="0 0 100 100" className="w-full h-full">
@@ -1386,6 +1391,7 @@ function FallingRaspberry({ index, scrollYProgress, total }) {
 // Scroll-Triggered Falling Raspberries Section
 function UnboxingSection() {
   const containerRef = useRef(null)
+  const isMobile = useIsMobile()
 
   const { scrollYProgress } = useScroll({
     target: containerRef,
@@ -1398,7 +1404,8 @@ function UnboxingSection() {
   const titleScale = useTransform(scrollYProgress, [0, 0.3], [0.8, 1])
   const titleOpacity = useTransform(scrollYProgress, [0, 0.15], [0, 1])
 
-  const raspberryCount = 25
+  // Reduce raspberry count on mobile for better performance
+  const raspberryCount = isMobile ? 12 : 25
 
   return (
     <section ref={containerRef} className="h-[300vh] relative">
@@ -1430,6 +1437,7 @@ function UnboxingSection() {
               index={i}
               scrollYProgress={scrollYProgress}
               total={raspberryCount}
+              isMobile={isMobile}
             />
           ))}
         </div>
