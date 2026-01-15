@@ -1274,48 +1274,51 @@ function FallingRaspberry({ index, scrollProgress, total, isMobile }) {
 
   return (
     <div
-      className="absolute pointer-events-none will-change-transform"
+      className="absolute pointer-events-none"
       style={{
         left: `${50 + startX}%`,
         top: `${currentY}%`,
         width: size,
         height: size,
         transform,
+        willChange: 'transform',
+        backfaceVisibility: 'hidden',
       }}
     >
-      {/* Simplified raspberry for mobile, detailed for desktop */}
-      {isMobile ? (
-        // Simple circle with gradient for mobile
-        <div
-          className="w-full h-full rounded-full"
-          style={{
-            background: 'radial-gradient(circle at 30% 30%, #93c5fd 0%, #3b82f6 50%, #1e40af 100%)',
-            boxShadow: '0 0 15px rgba(59, 130, 246, 0.5)',
-          }}
-        />
-      ) : (
-        // Full SVG raspberry for desktop
-        <svg viewBox="0 0 100 100" className="w-full h-full" style={{ filter: 'drop-shadow(0 0 10px rgba(59, 130, 246, 0.5))' }}>
-          <defs>
-            <radialGradient id={`drupeletGrad${index}`} cx="30%" cy="30%">
-              <stop offset="0%" stopColor="#93c5fd" />
-              <stop offset="70%" stopColor="#3b82f6" />
-              <stop offset="100%" stopColor="#1e40af" />
-            </radialGradient>
-          </defs>
-          <circle cx="50" cy="35" r="12" fill={`url(#drupeletGrad${index})`} />
-          <circle cx="35" cy="45" r="11" fill={`url(#drupeletGrad${index})`} />
-          <circle cx="65" cy="45" r="11" fill={`url(#drupeletGrad${index})`} />
-          <circle cx="42" cy="58" r="12" fill={`url(#drupeletGrad${index})`} />
-          <circle cx="58" cy="58" r="12" fill={`url(#drupeletGrad${index})`} />
-          <circle cx="50" cy="72" r="11" fill={`url(#drupeletGrad${index})`} />
-          <circle cx="30" cy="60" r="9" fill={`url(#drupeletGrad${index})`} />
-          <circle cx="70" cy="60" r="9" fill={`url(#drupeletGrad${index})`} />
-          <circle cx="45" cy="32" r="4" fill="rgba(255,255,255,0.4)" />
-          <ellipse cx="50" cy="20" rx="8" ry="5" fill="#22c55e" />
-          <rect x="48" y="10" width="4" height="12" rx="2" fill="#15803d" />
-        </svg>
-      )}
+      {/* Raspberry SVG - slightly simplified on mobile */}
+      <svg
+        viewBox="0 0 100 100"
+        className="w-full h-full"
+        style={{
+          filter: isMobile ? 'drop-shadow(0 0 8px rgba(59, 130, 246, 0.4))' : 'drop-shadow(0 0 10px rgba(59, 130, 246, 0.5))'
+        }}
+      >
+        <defs>
+          <radialGradient id={`drupeletGrad${index}`} cx="30%" cy="30%">
+            <stop offset="0%" stopColor="#93c5fd" />
+            <stop offset="70%" stopColor="#3b82f6" />
+            <stop offset="100%" stopColor="#1e40af" />
+          </radialGradient>
+        </defs>
+        {/* Berry drupelets */}
+        <circle cx="50" cy="35" r="12" fill={`url(#drupeletGrad${index})`} />
+        <circle cx="35" cy="45" r="11" fill={`url(#drupeletGrad${index})`} />
+        <circle cx="65" cy="45" r="11" fill={`url(#drupeletGrad${index})`} />
+        <circle cx="42" cy="58" r="12" fill={`url(#drupeletGrad${index})`} />
+        <circle cx="58" cy="58" r="12" fill={`url(#drupeletGrad${index})`} />
+        <circle cx="50" cy="72" r="11" fill={`url(#drupeletGrad${index})`} />
+        {!isMobile && (
+          <>
+            <circle cx="30" cy="60" r="9" fill={`url(#drupeletGrad${index})`} />
+            <circle cx="70" cy="60" r="9" fill={`url(#drupeletGrad${index})`} />
+          </>
+        )}
+        {/* Highlight */}
+        <circle cx="45" cy="32" r="4" fill="rgba(255,255,255,0.4)" />
+        {/* Stem */}
+        <ellipse cx="50" cy="20" rx="8" ry="5" fill="#22c55e" />
+        <rect x="48" y="10" width="4" height="12" rx="2" fill="#15803d" />
+      </svg>
     </div>
   )
 }
@@ -1325,7 +1328,6 @@ function UnboxingSection() {
   const containerRef = useRef(null)
   const [scrollProgress, setScrollProgress] = useState(0)
   const isMobile = useIsMobile()
-  const lastUpdate = useRef(0)
 
   const { scrollYProgress } = useScroll({
     target: containerRef,
@@ -1334,14 +1336,10 @@ function UnboxingSection() {
 
   useEffect(() => {
     const unsubscribe = scrollYProgress.on('change', (v) => {
-      // Throttle updates on mobile for better performance
-      const now = Date.now()
-      if (isMobile && now - lastUpdate.current < 50) return // ~20fps on mobile
-      lastUpdate.current = now
       setScrollProgress(v)
     })
     return () => unsubscribe()
-  }, [scrollYProgress, isMobile])
+  }, [scrollYProgress])
 
   const textOpacity = useTransform(scrollYProgress, [0.7, 0.85], [0, 1])
   const textY = useTransform(scrollYProgress, [0.7, 0.85], [50, 0])
@@ -1349,8 +1347,8 @@ function UnboxingSection() {
   const titleScale = useTransform(scrollYProgress, [0, 0.3], [0.8, 1])
   const titleOpacity = useTransform(scrollYProgress, [0, 0.15], [0, 1])
 
-  // Reduced count on mobile for performance - 6 simple circles
-  const raspberryCount = isMobile ? 6 : 25
+  // Reduced count on mobile for performance
+  const raspberryCount = isMobile ? 8 : 25
 
   return (
     <section ref={containerRef} className="h-[200vh] md:h-[300vh] relative">
