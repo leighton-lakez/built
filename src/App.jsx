@@ -68,24 +68,24 @@ function CustomCursor() {
 }
 
 // 3D Morphing Sphere - Blue
-function MorphingSphere() {
+function MorphingSphere({ isMobile = false }) {
   const meshRef = useRef()
 
   useFrame((state) => {
     if (meshRef.current) {
-      meshRef.current.rotation.x = state.clock.elapsedTime * 0.2
-      meshRef.current.rotation.y = state.clock.elapsedTime * 0.3
+      meshRef.current.rotation.x = state.clock.elapsedTime * (isMobile ? 0.15 : 0.2)
+      meshRef.current.rotation.y = state.clock.elapsedTime * (isMobile ? 0.2 : 0.3)
     }
   })
 
   return (
-    <Float speed={2} rotationIntensity={1} floatIntensity={2}>
-      <Sphere ref={meshRef} args={[1, 100, 100]} scale={2.5}>
+    <Float speed={isMobile ? 1.5 : 2} rotationIntensity={isMobile ? 0.5 : 1} floatIntensity={isMobile ? 1 : 2}>
+      <Sphere ref={meshRef} args={[1, isMobile ? 64 : 100, isMobile ? 64 : 100]} scale={isMobile ? 2 : 2.5}>
         <MeshDistortMaterial
           color="#3b82f6"
           attach="material"
-          distort={0.5}
-          speed={2}
+          distort={isMobile ? 0.4 : 0.5}
+          speed={isMobile ? 1.5 : 2}
           roughness={0.2}
           metalness={0.8}
         />
@@ -306,38 +306,21 @@ function Hero() {
       className="h-[150vh] md:h-[200vh] relative"
     >
       <div className="sticky top-0 h-screen overflow-hidden bg-black">
-        {/* 3D Background - simplified/hidden on mobile */}
-        {!isMobile && (
-          <div className="absolute inset-0 z-0">
-            <Canvas camera={{ position: [0, 0, 5], fov: 75 }}>
-              <Suspense fallback={null}>
-                <ambientLight intensity={0.5} />
-                <directionalLight position={[10, 10, 5]} intensity={1} />
-                <MorphingSphere />
-                <Environment preset="city" />
-              </Suspense>
-            </Canvas>
-          </div>
-        )}
-
-        {/* Mobile background alternative - with wobbly blob */}
-        {isMobile && (
-          <div className="absolute inset-0 z-0">
-            <div className="absolute inset-0 bg-gradient-to-br from-blue-900/20 via-black to-blue-900/10" />
-            {/* Glow behind blob */}
-            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-64 h-64 rounded-full bg-blue-500/30 blur-3xl" />
-            {/* Wobbly gummy blob */}
-            <div
-              className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-40 h-40"
-              style={{
-                background: 'radial-gradient(ellipse at 30% 30%, #60a5fa 0%, #3b82f6 40%, #1d4ed8 70%, #1e3a8a 100%)',
-                borderRadius: '60% 40% 50% 50% / 50% 60% 40% 50%',
-                animation: 'wobble 4s ease-in-out infinite',
-                boxShadow: '0 0 60px rgba(59, 130, 246, 0.5), inset 0 0 30px rgba(255,255,255,0.1)',
-              }}
-            />
-          </div>
-        )}
+        {/* 3D Background - optimized for mobile */}
+        <div className="absolute inset-0 z-0">
+          <Canvas
+            camera={{ position: [0, 0, 5], fov: 75 }}
+            dpr={isMobile ? [1, 1.5] : [1, 2]}
+            performance={{ min: 0.5 }}
+          >
+            <Suspense fallback={null}>
+              <ambientLight intensity={0.5} />
+              <directionalLight position={[10, 10, 5]} intensity={1} />
+              <MorphingSphere isMobile={isMobile} />
+              {!isMobile && <Environment preset="city" />}
+            </Suspense>
+          </Canvas>
+        </div>
 
         {/* Gradient overlays */}
         <div className="absolute inset-0 bg-gradient-to-b from-black via-transparent to-black z-10" />
