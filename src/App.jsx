@@ -1351,40 +1351,34 @@ function FallingRaspberry({ index, scrollYProgress, total }) {
         height: size,
         transform,
         willChange: 'transform',
+        filter: 'drop-shadow(0 0 10px rgba(59, 130, 246, 0.5))',
       }}
     >
-      <div
-        className="w-full h-full rounded-full"
-        style={{
-          boxShadow: '0 0 15px rgba(59, 130, 246, 0.5)',
-        }}
-      >
-        <svg viewBox="0 0 100 100" className="w-full h-full">
-          <defs>
-            <radialGradient id={`drupeletGrad${index}`} cx="30%" cy="30%">
-              <stop offset="0%" stopColor="#93c5fd" />
-              <stop offset="70%" stopColor="#3b82f6" />
-              <stop offset="100%" stopColor="#1e40af" />
-            </radialGradient>
-          </defs>
-          <circle cx="50" cy="35" r="12" fill={`url(#drupeletGrad${index})`} />
-          <circle cx="35" cy="45" r="11" fill={`url(#drupeletGrad${index})`} />
-          <circle cx="65" cy="45" r="11" fill={`url(#drupeletGrad${index})`} />
-          <circle cx="42" cy="58" r="12" fill={`url(#drupeletGrad${index})`} />
-          <circle cx="58" cy="58" r="12" fill={`url(#drupeletGrad${index})`} />
-          <circle cx="50" cy="72" r="11" fill={`url(#drupeletGrad${index})`} />
-          <circle cx="30" cy="60" r="9" fill={`url(#drupeletGrad${index})`} />
-          <circle cx="70" cy="60" r="9" fill={`url(#drupeletGrad${index})`} />
-          <circle cx="38" cy="75" r="8" fill={`url(#drupeletGrad${index})`} />
-          <circle cx="62" cy="75" r="8" fill={`url(#drupeletGrad${index})`} />
-          <circle cx="45" cy="32" r="4" fill="rgba(255,255,255,0.4)" />
-          <circle cx="55" cy="55" r="3" fill="rgba(255,255,255,0.3)" />
-          <ellipse cx="50" cy="20" rx="8" ry="5" fill="#22c55e" />
-          <ellipse cx="42" cy="18" rx="6" ry="4" fill="#16a34a" transform="rotate(-20 42 18)" />
-          <ellipse cx="58" cy="18" rx="6" ry="4" fill="#16a34a" transform="rotate(20 58 18)" />
-          <rect x="48" y="10" width="4" height="12" rx="2" fill="#15803d" />
-        </svg>
-      </div>
+      <svg viewBox="0 0 100 100" className="w-full h-full">
+        <defs>
+          <radialGradient id={`drupeletGrad${index}`} cx="30%" cy="30%">
+            <stop offset="0%" stopColor="#93c5fd" />
+            <stop offset="70%" stopColor="#3b82f6" />
+            <stop offset="100%" stopColor="#1e40af" />
+          </radialGradient>
+        </defs>
+        <circle cx="50" cy="35" r="12" fill={`url(#drupeletGrad${index})`} />
+        <circle cx="35" cy="45" r="11" fill={`url(#drupeletGrad${index})`} />
+        <circle cx="65" cy="45" r="11" fill={`url(#drupeletGrad${index})`} />
+        <circle cx="42" cy="58" r="12" fill={`url(#drupeletGrad${index})`} />
+        <circle cx="58" cy="58" r="12" fill={`url(#drupeletGrad${index})`} />
+        <circle cx="50" cy="72" r="11" fill={`url(#drupeletGrad${index})`} />
+        <circle cx="30" cy="60" r="9" fill={`url(#drupeletGrad${index})`} />
+        <circle cx="70" cy="60" r="9" fill={`url(#drupeletGrad${index})`} />
+        <circle cx="38" cy="75" r="8" fill={`url(#drupeletGrad${index})`} />
+        <circle cx="62" cy="75" r="8" fill={`url(#drupeletGrad${index})`} />
+        <circle cx="45" cy="32" r="4" fill="rgba(255,255,255,0.4)" />
+        <circle cx="55" cy="55" r="3" fill="rgba(255,255,255,0.3)" />
+        <ellipse cx="50" cy="20" rx="8" ry="5" fill="#22c55e" />
+        <ellipse cx="42" cy="18" rx="6" ry="4" fill="#16a34a" transform="rotate(-20 42 18)" />
+        <ellipse cx="58" cy="18" rx="6" ry="4" fill="#16a34a" transform="rotate(20 58 18)" />
+        <rect x="48" y="10" width="4" height="12" rx="2" fill="#15803d" />
+      </svg>
     </motion.div>
   )
 }
