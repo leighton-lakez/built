@@ -1321,7 +1321,7 @@ function QuizCTA({ onStartQuiz }) {
   )
 }
 
-// Single Falling Raspberry Component
+// Single Falling Raspberry Component - GPU accelerated
 function FallingRaspberry({ index, scrollProgress, total }) {
   const seed = index * 137.5
   const startX = ((index % 7) - 3) * 15 + (Math.sin(seed) * 10)
@@ -1338,18 +1338,20 @@ function FallingRaspberry({ index, scrollProgress, total }) {
   const wobbleX = Math.sin(easedProgress * Math.PI * 3 + index) * 8
 
   return (
-    <motion.div
+    <div
       className="absolute pointer-events-none"
       style={{
         left: `${50 + startX}%`,
         top: `${currentY}%`,
-        x: wobbleX,
-        rotate: currentRotation,
         width: size,
         height: size,
+        transform: `translate3d(${wobbleX}px, 0, 0) rotate(${currentRotation}deg)`,
+        willChange: 'transform',
+        backfaceVisibility: 'hidden',
+        WebkitBackfaceVisibility: 'hidden',
       }}
     >
-      <svg viewBox="0 0 100 100" className="w-full h-full drop-shadow-lg" style={{ filter: 'drop-shadow(0 0 10px rgba(59, 130, 246, 0.5))' }}>
+      <svg viewBox="0 0 100 100" className="w-full h-full" style={{ filter: 'drop-shadow(0 0 10px rgba(59, 130, 246, 0.5))' }}>
         <defs>
           <radialGradient id={`drupeletGrad${index}`} cx="30%" cy="30%">
             <stop offset="0%" stopColor="#93c5fd" />
@@ -1374,7 +1376,7 @@ function FallingRaspberry({ index, scrollProgress, total }) {
         <ellipse cx="58" cy="18" rx="6" ry="4" fill="#16a34a" transform="rotate(20 58 18)" />
         <rect x="48" y="10" width="4" height="12" rx="2" fill="#15803d" />
       </svg>
-    </motion.div>
+    </div>
   )
 }
 
@@ -1382,6 +1384,8 @@ function FallingRaspberry({ index, scrollProgress, total }) {
 function UnboxingSection() {
   const containerRef = useRef(null)
   const [scrollProgress, setScrollProgress] = useState(0)
+  const rafRef = useRef(null)
+  const latestValue = useRef(0)
 
   const { scrollYProgress } = useScroll({
     target: containerRef,
@@ -1389,10 +1393,24 @@ function UnboxingSection() {
   })
 
   useEffect(() => {
+    const updateProgress = () => {
+      setScrollProgress(latestValue.current)
+      rafRef.current = null
+    }
+
     const unsubscribe = scrollYProgress.on('change', (v) => {
-      setScrollProgress(v)
+      latestValue.current = v
+      if (!rafRef.current) {
+        rafRef.current = requestAnimationFrame(updateProgress)
+      }
     })
-    return () => unsubscribe()
+
+    return () => {
+      unsubscribe()
+      if (rafRef.current) {
+        cancelAnimationFrame(rafRef.current)
+      }
+    }
   }, [scrollYProgress])
 
   const textOpacity = useTransform(scrollYProgress, [0.7, 0.85], [0, 1])
