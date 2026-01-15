@@ -1322,96 +1322,81 @@ function QuizCTA({ onStartQuiz }) {
 }
 
 // Single Falling Raspberry Component - GPU accelerated
-function FallingRaspberry({ index, scrollProgress, total }) {
+function FallingRaspberry({ index, scrollYProgress, total }) {
   const seed = index * 137.5
   const startX = ((index % 7) - 3) * 15 + (Math.sin(seed) * 10)
-  const startY = -15 - (index % 5) * 8
-  const endY = 120 + (index % 4) * 10
+  const startYvh = -15 - (index % 5) * 8
+  const endYvh = 120 + (index % 4) * 10
   const rotation = (index % 2 === 0 ? 1 : -1) * (360 + (index % 3) * 180)
   const size = 40 + (index % 4) * 15
   const delay = (index / total) * 0.5
 
-  const adjustedProgress = Math.max(0, Math.min(1, (scrollProgress - delay) / (1 - delay)))
-  const easedProgress = 1 - Math.pow(1 - adjustedProgress, 2)
-  const currentY = startY + (endY - startY) * easedProgress
-  const currentRotation = rotation * easedProgress
-  const wobbleX = Math.sin(easedProgress * Math.PI * 3 + index) * 8
+  // Use useTransform directly on the motion value - no React state needed
+  const transform = useTransform(scrollYProgress, (progress) => {
+    const adjustedProgress = Math.max(0, Math.min(1, (progress - delay) / (1 - delay)))
+    const easedProgress = 1 - Math.pow(1 - adjustedProgress, 2)
+    const yPixels = (startYvh + (endYvh - startYvh) * easedProgress) * window.innerHeight / 100
+    const currentRotation = rotation * easedProgress
+    const wobbleX = Math.sin(easedProgress * Math.PI * 3 + index) * 8
+    return `translate3d(${wobbleX}px, ${yPixels}px, 0) rotate(${currentRotation}deg)`
+  })
 
   return (
-    <div
+    <motion.div
       className="absolute pointer-events-none"
       style={{
         left: `${50 + startX}%`,
-        top: `${currentY}%`,
+        top: 0,
         width: size,
         height: size,
-        transform: `translate3d(${wobbleX}px, 0, 0) rotate(${currentRotation}deg)`,
+        transform,
         willChange: 'transform',
-        backfaceVisibility: 'hidden',
-        WebkitBackfaceVisibility: 'hidden',
       }}
     >
-      <svg viewBox="0 0 100 100" className="w-full h-full" style={{ filter: 'drop-shadow(0 0 10px rgba(59, 130, 246, 0.5))' }}>
-        <defs>
-          <radialGradient id={`drupeletGrad${index}`} cx="30%" cy="30%">
-            <stop offset="0%" stopColor="#93c5fd" />
-            <stop offset="70%" stopColor="#3b82f6" />
-            <stop offset="100%" stopColor="#1e40af" />
-          </radialGradient>
-        </defs>
-        <circle cx="50" cy="35" r="12" fill={`url(#drupeletGrad${index})`} />
-        <circle cx="35" cy="45" r="11" fill={`url(#drupeletGrad${index})`} />
-        <circle cx="65" cy="45" r="11" fill={`url(#drupeletGrad${index})`} />
-        <circle cx="42" cy="58" r="12" fill={`url(#drupeletGrad${index})`} />
-        <circle cx="58" cy="58" r="12" fill={`url(#drupeletGrad${index})`} />
-        <circle cx="50" cy="72" r="11" fill={`url(#drupeletGrad${index})`} />
-        <circle cx="30" cy="60" r="9" fill={`url(#drupeletGrad${index})`} />
-        <circle cx="70" cy="60" r="9" fill={`url(#drupeletGrad${index})`} />
-        <circle cx="38" cy="75" r="8" fill={`url(#drupeletGrad${index})`} />
-        <circle cx="62" cy="75" r="8" fill={`url(#drupeletGrad${index})`} />
-        <circle cx="45" cy="32" r="4" fill="rgba(255,255,255,0.4)" />
-        <circle cx="55" cy="55" r="3" fill="rgba(255,255,255,0.3)" />
-        <ellipse cx="50" cy="20" rx="8" ry="5" fill="#22c55e" />
-        <ellipse cx="42" cy="18" rx="6" ry="4" fill="#16a34a" transform="rotate(-20 42 18)" />
-        <ellipse cx="58" cy="18" rx="6" ry="4" fill="#16a34a" transform="rotate(20 58 18)" />
-        <rect x="48" y="10" width="4" height="12" rx="2" fill="#15803d" />
-      </svg>
-    </div>
+      <div
+        className="w-full h-full rounded-full"
+        style={{
+          boxShadow: '0 0 15px rgba(59, 130, 246, 0.5)',
+        }}
+      >
+        <svg viewBox="0 0 100 100" className="w-full h-full">
+          <defs>
+            <radialGradient id={`drupeletGrad${index}`} cx="30%" cy="30%">
+              <stop offset="0%" stopColor="#93c5fd" />
+              <stop offset="70%" stopColor="#3b82f6" />
+              <stop offset="100%" stopColor="#1e40af" />
+            </radialGradient>
+          </defs>
+          <circle cx="50" cy="35" r="12" fill={`url(#drupeletGrad${index})`} />
+          <circle cx="35" cy="45" r="11" fill={`url(#drupeletGrad${index})`} />
+          <circle cx="65" cy="45" r="11" fill={`url(#drupeletGrad${index})`} />
+          <circle cx="42" cy="58" r="12" fill={`url(#drupeletGrad${index})`} />
+          <circle cx="58" cy="58" r="12" fill={`url(#drupeletGrad${index})`} />
+          <circle cx="50" cy="72" r="11" fill={`url(#drupeletGrad${index})`} />
+          <circle cx="30" cy="60" r="9" fill={`url(#drupeletGrad${index})`} />
+          <circle cx="70" cy="60" r="9" fill={`url(#drupeletGrad${index})`} />
+          <circle cx="38" cy="75" r="8" fill={`url(#drupeletGrad${index})`} />
+          <circle cx="62" cy="75" r="8" fill={`url(#drupeletGrad${index})`} />
+          <circle cx="45" cy="32" r="4" fill="rgba(255,255,255,0.4)" />
+          <circle cx="55" cy="55" r="3" fill="rgba(255,255,255,0.3)" />
+          <ellipse cx="50" cy="20" rx="8" ry="5" fill="#22c55e" />
+          <ellipse cx="42" cy="18" rx="6" ry="4" fill="#16a34a" transform="rotate(-20 42 18)" />
+          <ellipse cx="58" cy="18" rx="6" ry="4" fill="#16a34a" transform="rotate(20 58 18)" />
+          <rect x="48" y="10" width="4" height="12" rx="2" fill="#15803d" />
+        </svg>
+      </div>
+    </motion.div>
   )
 }
 
 // Scroll-Triggered Falling Raspberries Section
 function UnboxingSection() {
   const containerRef = useRef(null)
-  const [scrollProgress, setScrollProgress] = useState(0)
-  const rafRef = useRef(null)
-  const latestValue = useRef(0)
 
   const { scrollYProgress } = useScroll({
     target: containerRef,
     offset: ['start start', 'end end']
   })
-
-  useEffect(() => {
-    const updateProgress = () => {
-      setScrollProgress(latestValue.current)
-      rafRef.current = null
-    }
-
-    const unsubscribe = scrollYProgress.on('change', (v) => {
-      latestValue.current = v
-      if (!rafRef.current) {
-        rafRef.current = requestAnimationFrame(updateProgress)
-      }
-    })
-
-    return () => {
-      unsubscribe()
-      if (rafRef.current) {
-        cancelAnimationFrame(rafRef.current)
-      }
-    }
-  }, [scrollYProgress])
 
   const textOpacity = useTransform(scrollYProgress, [0.7, 0.85], [0, 1])
   const textY = useTransform(scrollYProgress, [0.7, 0.85], [50, 0])
@@ -1449,7 +1434,7 @@ function UnboxingSection() {
             <FallingRaspberry
               key={i}
               index={i}
-              scrollProgress={scrollProgress}
+              scrollYProgress={scrollYProgress}
               total={raspberryCount}
             />
           ))}
