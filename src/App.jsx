@@ -9,6 +9,20 @@ import './index.css'
 // Product image - replace with your actual image path
 const PRODUCT_IMAGE = '/product.png'
 
+// Mobile detection hook
+function useIsMobile() {
+  const [isMobile, setIsMobile] = useState(false)
+
+  useEffect(() => {
+    const check = () => setIsMobile(window.innerWidth < 768)
+    check()
+    window.addEventListener('resize', check)
+    return () => window.removeEventListener('resize', check)
+  }, [])
+
+  return isMobile
+}
+
 // Custom Cursor
 function CustomCursor() {
   const cursorX = useMotionValue(-100)
@@ -203,8 +217,6 @@ function MagneticButton({ children, className = '', href = '#' }) {
 // Parallax Text
 function ParallaxText({ children, baseVelocity = 5 }) {
   const baseX = useMotionValue(0)
-  const { scrollY } = useScroll()
-  const scrollVelocity = useTransform(scrollY, [0, 1000], [0, baseVelocity * 100])
   const x = useTransform(baseX, (v) => `${v}%`)
 
   useEffect(() => {
@@ -220,9 +232,9 @@ function ParallaxText({ children, baseVelocity = 5 }) {
 
   return (
     <div className="overflow-hidden whitespace-nowrap flex">
-      <motion.div style={{ x }} className="flex gap-8">
+      <motion.div style={{ x }} className="flex gap-4 md:gap-8">
         {[...Array(4)].map((_, i) => (
-          <span key={i} className="text-8xl md:text-[12rem] font-black text-white/5 uppercase">
+          <span key={i} className="text-4xl md:text-[12rem] font-black text-white/5 uppercase">
             {children}
           </span>
         ))}
@@ -277,6 +289,7 @@ function Navbar({ onShopNow }) {
 // Hero Section
 function Hero() {
   const containerRef = useRef(null)
+  const isMobile = useIsMobile()
   const { scrollYProgress } = useScroll({
     target: containerRef,
     offset: ['start start', 'end start']
@@ -290,20 +303,27 @@ function Hero() {
     <motion.section
       ref={containerRef}
       style={{ opacity }}
-      className="h-[200vh] relative"
+      className="h-[150vh] md:h-[200vh] relative"
     >
       <div className="sticky top-0 h-screen overflow-hidden bg-black">
-        {/* 3D Background */}
-        <div className="absolute inset-0 z-0">
-          <Canvas camera={{ position: [0, 0, 5], fov: 75 }}>
-            <Suspense fallback={null}>
-              <ambientLight intensity={0.5} />
-              <directionalLight position={[10, 10, 5]} intensity={1} />
-              <MorphingSphere />
-              <Environment preset="city" />
-            </Suspense>
-          </Canvas>
-        </div>
+        {/* 3D Background - simplified/hidden on mobile */}
+        {!isMobile && (
+          <div className="absolute inset-0 z-0">
+            <Canvas camera={{ position: [0, 0, 5], fov: 75 }}>
+              <Suspense fallback={null}>
+                <ambientLight intensity={0.5} />
+                <directionalLight position={[10, 10, 5]} intensity={1} />
+                <MorphingSphere />
+                <Environment preset="city" />
+              </Suspense>
+            </Canvas>
+          </div>
+        )}
+
+        {/* Mobile background alternative */}
+        {isMobile && (
+          <div className="absolute inset-0 z-0 bg-gradient-to-br from-blue-900/20 via-black to-blue-900/10" />
+        )}
 
         {/* Gradient overlays */}
         <div className="absolute inset-0 bg-gradient-to-b from-black via-transparent to-black z-10" />
@@ -380,11 +400,11 @@ function Hero() {
           </motion.div>
         </motion.div>
 
-        {/* Corner decorations */}
-        <div className="absolute top-8 left-8 w-20 h-20 border-l-2 border-t-2 border-blue-400/30 z-20" />
-        <div className="absolute top-8 right-8 w-20 h-20 border-r-2 border-t-2 border-blue-400/30 z-20" />
-        <div className="absolute bottom-8 left-8 w-20 h-20 border-l-2 border-b-2 border-blue-400/30 z-20" />
-        <div className="absolute bottom-8 right-8 w-20 h-20 border-r-2 border-b-2 border-blue-400/30 z-20" />
+        {/* Corner decorations - smaller on mobile */}
+        <div className="absolute top-4 left-4 md:top-8 md:left-8 w-10 h-10 md:w-20 md:h-20 border-l-2 border-t-2 border-blue-400/30 z-20" />
+        <div className="absolute top-4 right-4 md:top-8 md:right-8 w-10 h-10 md:w-20 md:h-20 border-r-2 border-t-2 border-blue-400/30 z-20" />
+        <div className="absolute bottom-4 left-4 md:bottom-8 md:left-8 w-10 h-10 md:w-20 md:h-20 border-l-2 border-b-2 border-blue-400/30 z-20" />
+        <div className="absolute bottom-4 right-4 md:bottom-8 md:right-8 w-10 h-10 md:w-20 md:h-20 border-r-2 border-b-2 border-blue-400/30 z-20" />
       </div>
     </motion.section>
   )
@@ -393,7 +413,7 @@ function Hero() {
 // Marquee Section
 function MarqueeSection() {
   return (
-    <section className="py-24 bg-black overflow-hidden">
+    <section className="py-12 md:py-24 bg-black overflow-hidden">
       <ParallaxText baseVelocity={-2}>CREATINE GUMMIES •</ParallaxText>
       <ParallaxText baseVelocity={2}>3G PURE CREATINE • 100% VEGAN •</ParallaxText>
     </section>
@@ -403,6 +423,7 @@ function MarqueeSection() {
 // Product Section with actual image
 function ProductSection() {
   const ref = useRef(null)
+  const isMobile = useIsMobile()
   const { scrollYProgress } = useScroll({
     target: ref,
     offset: ['start end', 'end start']
@@ -412,215 +433,137 @@ function ProductSection() {
   const rightX = useTransform(scrollYProgress, [0, 0.5], ['100%', '0%'])
 
   return (
-    <section ref={ref} className="min-h-screen bg-black relative overflow-hidden py-32">
-      <div className="max-w-7xl mx-auto px-6">
+    <section ref={ref} className="min-h-screen bg-black relative overflow-hidden py-16 md:py-32">
+      <div className="max-w-7xl mx-auto px-4 md:px-6">
         <div className="grid md:grid-cols-2 gap-8 md:gap-16 items-center">
           {/* Left - Product Image */}
-          <motion.div style={{ x: leftX }} className="relative flex justify-center">
+          <motion.div style={{ x: isMobile ? 0 : leftX }} className="relative flex justify-center overflow-hidden">
             <div className="relative">
               {/* Glow effect behind product */}
-              <div className="absolute inset-0 bg-blue-500/30 blur-[100px] rounded-full scale-90" />
+              <div className="absolute inset-0 bg-blue-500/30 blur-[60px] md:blur-[100px] rounded-full scale-75 md:scale-90" />
 
-              {/* Pulsing energy rings */}
-              {[...Array(3)].map((_, i) => (
+              {/* Pulsing energy rings - reduced on mobile */}
+              {!isMobile && [...Array(2)].map((_, i) => (
                 <motion.div
                   key={`ring-${i}`}
                   className="absolute inset-0 border-2 border-blue-400/30 rounded-full"
                   initial={{ scale: 0.8, opacity: 0.8 }}
                   animate={{
-                    scale: [0.8, 1.8, 2.2],
-                    opacity: [0.6, 0.2, 0]
+                    scale: [0.8, 1.5],
+                    opacity: [0.6, 0]
                   }}
                   transition={{
                     duration: 3,
                     repeat: Infinity,
-                    delay: i * 1,
+                    delay: i * 1.5,
                     ease: "easeOut"
                   }}
                 />
               ))}
 
-              {/* Decorative frame */}
-              <div className="absolute -inset-8 border border-blue-500/20 rounded-3xl" />
-              <div className="absolute -inset-12 border border-blue-500/10 rounded-3xl" />
+              {/* Decorative frame - hidden on mobile */}
+              <div className="hidden md:block absolute -inset-8 border border-blue-500/20 rounded-3xl" />
 
-              {/* Corner accents */}
-              <div className="absolute -top-6 -left-6 w-12 h-12 border-l-2 border-t-2 border-blue-400 rounded-tl-xl" />
-              <div className="absolute -top-6 -right-6 w-12 h-12 border-r-2 border-t-2 border-blue-400 rounded-tr-xl" />
-              <div className="absolute -bottom-6 -left-6 w-12 h-12 border-l-2 border-b-2 border-blue-400 rounded-bl-xl" />
-              <div className="absolute -bottom-6 -right-6 w-12 h-12 border-r-2 border-b-2 border-blue-400 rounded-br-xl" />
+              {/* Corner accents - smaller on mobile */}
+              <div className="absolute -top-3 -left-3 md:-top-6 md:-left-6 w-8 h-8 md:w-12 md:h-12 border-l-2 border-t-2 border-blue-400 rounded-tl-xl" />
+              <div className="absolute -top-3 -right-3 md:-top-6 md:-right-6 w-8 h-8 md:w-12 md:h-12 border-r-2 border-t-2 border-blue-400 rounded-tr-xl" />
+              <div className="absolute -bottom-3 -left-3 md:-bottom-6 md:-left-6 w-8 h-8 md:w-12 md:h-12 border-l-2 border-b-2 border-blue-400 rounded-bl-xl" />
+              <div className="absolute -bottom-3 -right-3 md:-bottom-6 md:-right-6 w-8 h-8 md:w-12 md:h-12 border-r-2 border-b-2 border-blue-400 rounded-br-xl" />
 
-              {/* Rotating rings */}
-              <motion.div
-                animate={{ rotate: 360 }}
-                transition={{ duration: 20, repeat: Infinity, ease: 'linear' }}
-                className="absolute inset-0 border border-blue-400/20 rounded-full scale-150"
-              />
-              <motion.div
-                animate={{ rotate: -360 }}
-                transition={{ duration: 30, repeat: Infinity, ease: 'linear' }}
-                className="absolute inset-0 border border-blue-400/10 rounded-full scale-[1.8]"
-              />
-
-              {/* Floating particles rising up */}
-              {[...Array(12)].map((_, i) => (
+              {/* Floating particles - desktop only */}
+              {!isMobile && [...Array(6)].map((_, i) => (
                 <motion.div
                   key={`particle-${i}`}
                   className="absolute w-1 h-1 bg-blue-400 rounded-full"
                   style={{
-                    left: `${20 + Math.random() * 60}%`,
+                    left: `${20 + (i * 10)}%`,
                     bottom: '0%',
                   }}
                   animate={{
-                    y: [0, -400],
-                    x: [0, (Math.random() - 0.5) * 100],
-                    opacity: [0, 1, 1, 0],
-                    scale: [0, 1.5, 1, 0]
-                  }}
-                  transition={{
-                    duration: 4 + Math.random() * 2,
-                    repeat: Infinity,
-                    delay: i * 0.3,
-                    ease: "easeOut"
-                  }}
-                />
-              ))}
-
-              {/* Electric sparks */}
-              {[...Array(6)].map((_, i) => (
-                <motion.div
-                  key={`spark-${i}`}
-                  className="absolute w-8 h-0.5 bg-gradient-to-r from-transparent via-blue-400 to-transparent"
-                  style={{
-                    top: `${30 + Math.random() * 40}%`,
-                    left: `${10 + Math.random() * 80}%`,
-                    rotate: `${Math.random() * 360}deg`,
-                  }}
-                  animate={{
+                    y: [0, -200],
                     opacity: [0, 1, 0],
-                    scaleX: [0, 1, 0],
                   }}
                   transition={{
-                    duration: 0.3,
+                    duration: 3,
                     repeat: Infinity,
-                    repeatDelay: 2 + Math.random() * 3,
                     delay: i * 0.5,
-                  }}
-                />
-              ))}
-
-              {/* Orbiting dots */}
-              {[...Array(8)].map((_, i) => (
-                <motion.div
-                  key={`dot-${i}`}
-                  className="absolute w-2 h-2 bg-blue-400 rounded-full"
-                  style={{
-                    top: '50%',
-                    left: '50%',
-                  }}
-                  animate={{
-                    x: [
-                      Math.cos((i * Math.PI * 2) / 8) * 150,
-                      Math.cos((i * Math.PI * 2) / 8 + Math.PI * 2) * 150
-                    ],
-                    y: [
-                      Math.sin((i * Math.PI * 2) / 8) * 150,
-                      Math.sin((i * Math.PI * 2) / 8 + Math.PI * 2) * 150
-                    ],
-                    scale: [1, 1.5, 1],
-                    opacity: [0.3, 0.8, 0.3]
-                  }}
-                  transition={{
-                    x: { duration: 10, repeat: Infinity, ease: 'linear' },
-                    y: { duration: 10, repeat: Infinity, ease: 'linear' },
-                    scale: { duration: 2, repeat: Infinity, delay: i * 0.2 },
-                    opacity: { duration: 2, repeat: Infinity, delay: i * 0.2 }
+                    ease: "easeOut"
                   }}
                 />
               ))}
 
               {/* Product Image */}
               <motion.div
-                animate={{ y: [0, -15, 0] }}
+                animate={isMobile ? {} : { y: [0, -10, 0] }}
                 transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
                 className="relative z-10"
               >
                 <img
                   src={PRODUCT_IMAGE}
                   alt="BUILT Creatine Gummies - Blue Raspberry"
-                  className="w-72 md:w-96 h-auto product-glow"
+                  className="w-56 md:w-96 h-auto product-glow"
                   onError={(e) => {
                     e.target.style.display = 'none'
                     e.target.nextSibling.style.display = 'flex'
                   }}
                 />
                 {/* Fallback if image doesn't load */}
-                <div className="hidden w-72 md:w-96 h-[400px] bg-gradient-to-b from-blue-500/20 to-transparent rounded-3xl border border-blue-500/30 items-center justify-center flex-col glow-blue">
-                  <div className="text-6xl mb-4">🫙</div>
-                  <div className="text-2xl font-black gradient-text">BUILT</div>
-                  <div className="text-sm text-white/60">Creatine Gummies</div>
+                <div className="hidden w-56 md:w-96 h-[300px] md:h-[400px] bg-gradient-to-b from-blue-500/20 to-transparent rounded-3xl border border-blue-500/30 items-center justify-center flex-col glow-blue">
+                  <div className="text-5xl md:text-6xl mb-4">🫙</div>
+                  <div className="text-xl md:text-2xl font-black gradient-text">BUILT</div>
+                  <div className="text-xs md:text-sm text-white/60">Creatine Gummies</div>
                 </div>
               </motion.div>
 
-              {/* Floating badges */}
-              <motion.div
-                animate={{ y: [0, -10, 0], rotate: [0, 5, 0] }}
-                transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
-                className="absolute -top-4 -right-4 md:right-0 px-4 py-2 bg-black/80 border border-blue-500/50 rounded-full text-sm font-bold text-blue-400 z-20 backdrop-blur-sm shadow-lg shadow-blue-500/20"
-              >
+              {/* Floating badges - simplified on mobile */}
+              <div className="absolute -top-2 right-0 md:-top-4 md:right-0 px-3 py-1.5 md:px-4 md:py-2 bg-black/80 border border-blue-500/50 rounded-full text-xs md:text-sm font-bold text-blue-400 z-20">
                 100% Vegan
-              </motion.div>
-              <motion.div
-                animate={{ y: [0, 10, 0], rotate: [0, -5, 0] }}
-                transition={{ duration: 5, repeat: Infinity, ease: "easeInOut", delay: 1 }}
-                className="absolute -bottom-4 -left-4 md:left-0 px-4 py-2 bg-black/80 border border-blue-500/50 rounded-full text-sm font-bold text-blue-400 z-20 backdrop-blur-sm shadow-lg shadow-blue-500/20"
-              >
+              </div>
+              <div className="absolute -bottom-2 left-0 md:-bottom-4 md:left-0 px-3 py-1.5 md:px-4 md:py-2 bg-black/80 border border-blue-500/50 rounded-full text-xs md:text-sm font-bold text-blue-400 z-20">
                 Blue Raspberry
-              </motion.div>
+              </div>
 
-              {/* Additional floating badge */}
-              <motion.div
-                animate={{ y: [0, 8, 0], rotate: [0, -3, 0] }}
-                transition={{ duration: 3.5, repeat: Infinity, ease: "easeInOut", delay: 0.5 }}
-                className="absolute top-1/2 -right-8 md:-right-16 px-4 py-2 bg-black/80 border border-blue-500/50 rounded-full text-sm font-bold text-blue-400 z-20 backdrop-blur-sm shadow-lg shadow-blue-500/20"
-              >
-                3G Creatine
-              </motion.div>
+              {/* Additional floating badge - desktop only */}
+              {!isMobile && (
+                <motion.div
+                  animate={{ y: [0, 8, 0] }}
+                  transition={{ duration: 3.5, repeat: Infinity, ease: "easeInOut" }}
+                  className="absolute top-1/2 -right-16 px-4 py-2 bg-black/80 border border-blue-500/50 rounded-full text-sm font-bold text-blue-400 z-20"
+                >
+                  3G Creatine
+                </motion.div>
+              )}
             </div>
           </motion.div>
 
           {/* Right - Text */}
-          <motion.div style={{ x: rightX }}>
-            <span className="text-blue-400 text-sm tracking-[0.3em] uppercase">The Product</span>
-            <h2 className="text-5xl md:text-7xl font-black mt-4 mb-8 leading-none">
+          <motion.div style={{ x: isMobile ? 0 : rightX }} className="text-center md:text-left">
+            <span className="text-blue-400 text-xs md:text-sm tracking-[0.3em] uppercase">The Product</span>
+            <h2 className="text-4xl md:text-7xl font-black mt-4 mb-6 md:mb-8 leading-none">
               <span className="text-white">GET</span>
               <br />
               <span className="gradient-text">STRONGER</span>
             </h2>
-            <p className="text-white/60 text-lg leading-relaxed mb-8">
+            <p className="text-white/60 text-base md:text-lg leading-relaxed mb-6 md:mb-8 px-2 md:px-0">
               120 premium creatine gummies packed with 3g of pure creatine per serving.
               Delicious Blue Raspberry flavor that makes your daily dose something to look forward to.
               100% vegan. Zero compromise.
             </p>
 
-            <div className="grid grid-cols-2 gap-6">
+            <div className="grid grid-cols-2 gap-4 md:gap-6">
               {[
                 { label: 'Creatine', value: '3G' },
                 { label: 'Gummies', value: '120' },
                 { label: 'Vegan', value: '100%' },
                 { label: 'Flavor', value: 'BLUE RASP' },
               ].map((stat, i) => (
-                <motion.div
+                <div
                   key={i}
-                  initial={{ opacity: 0, y: 20 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  viewport={{ once: true }}
-                  transition={{ delay: i * 0.1 }}
-                  className="border-l-2 border-blue-400 pl-4"
+                  className="border-l-2 border-blue-400 pl-3 md:pl-4 text-left"
                 >
-                  <div className="text-3xl font-black text-white">{stat.value}</div>
-                  <div className="text-white/40 text-sm uppercase tracking-wider">{stat.label}</div>
-                </motion.div>
+                  <div className="text-2xl md:text-3xl font-black text-white">{stat.value}</div>
+                  <div className="text-white/40 text-xs md:text-sm uppercase tracking-wider">{stat.label}</div>
+                </div>
               ))}
             </div>
           </motion.div>
@@ -633,6 +576,7 @@ function ProductSection() {
 // Features with Horizontal Scroll
 function HorizontalFeatures() {
   const containerRef = useRef(null)
+  const isMobile = useIsMobile()
   const { scrollYProgress } = useScroll({
     target: containerRef,
     offset: ['start start', 'end end']
@@ -668,43 +612,37 @@ function HorizontalFeatures() {
   ]
 
   return (
-    <section ref={containerRef} className="h-[300vh] relative bg-black">
+    <section ref={containerRef} className="h-[200vh] md:h-[300vh] relative bg-black">
       <div className="sticky top-0 h-screen flex items-center overflow-hidden">
-        <motion.div style={{ x }} className="flex gap-8 pl-[10vw]">
+        <motion.div style={{ x }} className="flex gap-4 md:gap-8 pl-[5vw] md:pl-[10vw]">
           {features.map((feature, i) => (
-            <motion.div
+            <div
               key={i}
-              className="w-[80vw] md:w-[40vw] h-[70vh] flex-shrink-0 relative group"
+              className="w-[85vw] md:w-[40vw] h-[60vh] md:h-[70vh] flex-shrink-0 relative"
             >
-              <div className="absolute inset-0 border border-white/10 group-hover:border-blue-400/50 transition-colors duration-500" />
-              <div className="absolute inset-4 border border-white/5 group-hover:border-blue-400/20 transition-colors duration-500" />
+              <div className="absolute inset-0 border border-white/10" />
+              <div className="hidden md:block absolute inset-4 border border-white/5" />
 
-              <div className="relative h-full p-8 md:p-12 flex flex-col justify-between">
+              <div className="relative h-full p-6 md:p-12 flex flex-col justify-between">
                 <div>
-                  <span className="text-blue-400 font-mono text-sm">{feature.num}</span>
-                  <div className="text-8xl mt-4 mb-6 grayscale group-hover:grayscale-0 transition-all duration-500">
+                  <span className="text-blue-400 font-mono text-xs md:text-sm">{feature.num}</span>
+                  <div className="text-5xl md:text-8xl mt-3 md:mt-4 mb-4 md:mb-6">
                     {feature.icon}
                   </div>
                 </div>
 
                 <div>
-                  <h3 className="text-3xl md:text-4xl font-black text-white mb-4 tracking-tight">
+                  <h3 className="text-2xl md:text-4xl font-black text-white mb-2 md:mb-4 tracking-tight">
                     {feature.title}
                   </h3>
-                  <p className="text-white/50 text-lg max-w-sm">
+                  <p className="text-white/50 text-sm md:text-lg max-w-sm">
                     {feature.desc}
                   </p>
                 </div>
 
-                <motion.div
-                  initial={{ width: 0 }}
-                  whileInView={{ width: '100%' }}
-                  viewport={{ once: true }}
-                  transition={{ duration: 1, delay: 0.5 }}
-                  className="absolute bottom-0 left-0 h-px bg-gradient-to-r from-blue-400 to-transparent"
-                />
+                <div className="absolute bottom-0 left-0 right-0 h-px bg-gradient-to-r from-blue-400 to-transparent" />
               </div>
-            </motion.div>
+            </div>
           ))}
         </motion.div>
       </div>
@@ -1310,14 +1248,14 @@ function QuizCTA({ onStartQuiz }) {
 }
 
 // Single Falling Raspberry Component
-function FallingRaspberry({ index, scrollProgress, total }) {
+function FallingRaspberry({ index, scrollProgress, total, isMobile }) {
   // Randomized properties for each raspberry
   const seed = index * 137.5
-  const startX = ((index % 7) - 3) * 15 + (Math.sin(seed) * 10) // Spread across screen
+  const startX = ((index % 7) - 3) * (isMobile ? 12 : 15) + (Math.sin(seed) * (isMobile ? 6 : 10)) // Spread across screen
   const startY = -15 - (index % 5) * 8 // Staggered start heights above viewport
   const endY = 120 + (index % 4) * 10 // End below viewport
-  const rotation = (index % 2 === 0 ? 1 : -1) * (360 + (index % 3) * 180) // Varied rotation
-  const size = 40 + (index % 4) * 15 // Varied sizes 40-85px
+  const rotation = (index % 2 === 0 ? 1 : -1) * (180 + (index % 3) * 90) // Reduced rotation
+  const size = isMobile ? (25 + (index % 3) * 10) : (40 + (index % 4) * 15) // Smaller on mobile
   const delay = (index / total) * 0.5 // Staggered timing
 
   // Calculate progress for this specific raspberry
@@ -1389,6 +1327,7 @@ function FallingRaspberry({ index, scrollProgress, total }) {
 function UnboxingSection() {
   const containerRef = useRef(null)
   const [scrollProgress, setScrollProgress] = useState(0)
+  const isMobile = useIsMobile()
 
   const { scrollYProgress } = useScroll({
     target: containerRef,
@@ -1408,28 +1347,29 @@ function UnboxingSection() {
   const titleScale = useTransform(scrollYProgress, [0, 0.3], [0.8, 1])
   const titleOpacity = useTransform(scrollYProgress, [0, 0.15], [0, 1])
 
-  const raspberryCount = 25
+  // Reduced count on mobile for performance
+  const raspberryCount = isMobile ? 10 : 25
 
   return (
-    <section ref={containerRef} className="h-[300vh] relative">
+    <section ref={containerRef} className="h-[200vh] md:h-[300vh] relative">
       <div className="sticky top-0 h-screen overflow-hidden bg-black">
         {/* Background glow effect */}
         <motion.div
           style={{ opacity: glowOpacity }}
           className="absolute inset-0 flex items-center justify-center pointer-events-none"
         >
-          <div className="w-[600px] h-[600px] bg-blue-500/40 rounded-full blur-[150px]" />
+          <div className="w-[300px] h-[300px] md:w-[600px] md:h-[600px] bg-blue-500/40 rounded-full blur-[80px] md:blur-[150px]" />
         </motion.div>
 
         {/* Title that appears at start */}
         <motion.div
           style={{ opacity: titleOpacity, scale: titleScale }}
-          className="absolute top-1/3 left-0 right-0 text-center z-10"
+          className="absolute top-1/3 left-0 right-0 text-center z-10 px-4"
         >
-          <h2 className="text-5xl md:text-8xl font-black text-white mb-2">
+          <h2 className="text-3xl md:text-8xl font-black text-white mb-2">
             <span className="gradient-text">BLUE RASPBERRY</span>
           </h2>
-          <p className="text-white/60 text-xl md:text-2xl tracking-wider">FLAVOR EXPLOSION</p>
+          <p className="text-white/60 text-base md:text-2xl tracking-wider">FLAVOR EXPLOSION</p>
         </motion.div>
 
         {/* Falling raspberries */}
@@ -1440,6 +1380,7 @@ function UnboxingSection() {
               index={i}
               scrollProgress={scrollProgress}
               total={raspberryCount}
+              isMobile={isMobile}
             />
           ))}
         </div>
@@ -1447,12 +1388,12 @@ function UnboxingSection() {
         {/* Text overlay - appears at end */}
         <motion.div
           style={{ opacity: textOpacity, y: textY }}
-          className="absolute bottom-20 md:bottom-28 left-0 right-0 text-center z-10"
+          className="absolute bottom-16 md:bottom-28 left-0 right-0 text-center z-10 px-4"
         >
-          <h2 className="text-4xl md:text-6xl font-black text-white mb-4">
+          <h2 className="text-2xl md:text-6xl font-black text-white mb-2 md:mb-4">
             TASTE THE <span className="gradient-text">POWER</span>
           </h2>
-          <p className="text-white/60 text-lg md:text-xl">120 gummies of pure blue raspberry goodness</p>
+          <p className="text-white/60 text-sm md:text-xl">120 gummies of pure blue raspberry goodness</p>
         </motion.div>
 
         {/* Scroll progress indicator */}

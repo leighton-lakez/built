@@ -53,6 +53,42 @@ body {
   font-family: 'Inter', system-ui, sans-serif;
   background: #000;
   overflow-x: hidden;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* Mobile performance optimizations */
+@media (max-width: 768px) {
+  * {
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  /* Reduce motion for users who prefer it */
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+    }
+  }
+
+  /* GPU acceleration for animated elements */
+  .animate-glitch-1,
+  .animate-glitch-2,
+  .product-glow,
+  .gradient-text {
+    transform: translateZ(0);
+    backface-visibility: hidden;
+  }
+
+  /* Simpler animations on mobile */
+  .glow-text {
+    filter: none;
+    text-shadow: 0 0 20px rgba(59, 130, 246, 0.5);
+  }
+
+  .glow-blue {
+    box-shadow: 0 0 20px rgba(59, 130, 246, 0.3);
+  }
 }
 
 /* Selection */
@@ -138,6 +174,14 @@ body {
 
 .animate-glitch-2 {
   animation: glitch-2 2s infinite linear alternate-reverse;
+}
+
+/* Disable glitch animation on mobile for performance */
+@media (max-width: 768px) {
+  .animate-glitch-1,
+  .animate-glitch-2 {
+    animation: none;
+  }
 }
 
 .clip-glitch {
