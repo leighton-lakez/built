@@ -428,3 +428,18 @@ canvas {
 .product-glow {
   animation: product-glow 3s ease-in-out infinite;
 }
+
+/* Mobile raspberry falling animation - pure CSS, no JS overhead */
+@keyframes raspberryFall {
+  0% {
+    transform: translateY(0) rotate(0deg);
+    opacity: 0;
+  }
+  10% {
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(120vh) rotate(360deg);
+    opacity: 1;
+  }
+}
