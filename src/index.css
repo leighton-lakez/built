@@ -435,10 +435,12 @@ canvas {
     transform: translateY(0) rotate(0deg);
     opacity: 0;
   }
-  8% {
+  15% {
+    transform: translateY(20vh) rotate(54deg);
     opacity: 1;
   }
-  85% {
+  75% {
+    transform: translateY(100vh) rotate(270deg);
     opacity: 1;
   }
   100% {
