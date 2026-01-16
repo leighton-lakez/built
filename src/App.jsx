@@ -1334,9 +1334,9 @@ function QuizCTA({ onStartQuiz }) {
 }
 
 // Single Falling Raspberry Component - GPU accelerated
-// Desktop: scroll-linked animation
-// Mobile: pure CSS animation (no JS overhead)
-function FallingRaspberry({ index, scrollYProgress, total, isMobile, isVisible }) {
+// Desktop: scroll-linked JS animation
+// Mobile: CSS scroll-driven animation (runs on compositor thread)
+function FallingRaspberry({ index, scrollYProgress, total, isMobile }) {
   const seed = index * 137.5
   const startX = ((index % 7) - 3) * 15 + (Math.sin(seed) * 10)
   const size = 40 + (index % 4) * 15
@@ -1348,7 +1348,7 @@ function FallingRaspberry({ index, scrollYProgress, total, isMobile, isVisible }
   const delay = (index / total) * 0.5
 
   const transform = useTransform(scrollYProgress, (progress) => {
-    if (isMobile) return 'none' // Mobile uses CSS animation instead
+    if (isMobile) return 'none' // Mobile uses CSS scroll-driven animation
     const adjustedProgress = Math.max(0, Math.min(1, (progress - delay) / (1 - delay)))
     const easedProgress = 1 - Math.pow(1 - adjustedProgress, 2)
     const yPixels = (startYvh + (endYvh - startYvh) * easedProgress) * window.innerHeight / 100
@@ -1357,23 +1357,20 @@ function FallingRaspberry({ index, scrollYProgress, total, isMobile, isVisible }
     return `translate3d(${wobbleX}px, ${yPixels}px, 0) rotate(${currentRotation}deg)`
   })
 
-  // Mobile: pure CSS animation
+  // Mobile: CSS scroll-driven animation (compositor thread)
   if (isMobile) {
-    const animationDelay = (index / total) * 2 // Stagger over 2 seconds
-    const animationDuration = 3 + (index % 3) // 3-5 seconds
+    // Stagger the animation start position for each raspberry
+    const staggerDelay = (index / total) * 100 // percentage delay
 
     return (
       <div
-        className="absolute pointer-events-none"
+        className="absolute pointer-events-none raspberry-scroll-animate"
         style={{
           left: `${50 + startX}%`,
-          top: '-15%',
+          top: 0,
           width: size,
           height: size,
-          animation: isVisible
-            ? `raspberryFall ${animationDuration}s ease-out ${animationDelay}s forwards`
-            : 'none',
-          opacity: isVisible ? 1 : 0,
+          animationDelay: `${-staggerDelay}%`,
         }}
       >
         <svg viewBox="0 0 100 100" className="w-full h-full">
@@ -1452,31 +1449,13 @@ function FallingRaspberry({ index, scrollYProgress, total, isMobile, isVisible }
 function UnboxingSection() {
   const containerRef = useRef(null)
   const isMobile = useIsMobile()
-  const [isVisible, setIsVisible] = useState(false)
-
-  // Intersection Observer for mobile - trigger animation when section is visible
-  useEffect(() => {
-    if (!isMobile || !containerRef.current) return
-
-    const observer = new IntersectionObserver(
-      ([entry]) => {
-        if (entry.isIntersecting) {
-          setIsVisible(true)
-        }
-      },
-      { threshold: 0.1 }
-    )
-
-    observer.observe(containerRef.current)
-    return () => observer.disconnect()
-  }, [isMobile])
 
   const { scrollYProgress } = useScroll({
     target: containerRef,
     offset: ['start start', 'end end']
   })
 
-  // Desktop uses scroll-linked opacity, mobile uses simple visibility
+  // Scroll-linked transforms for text elements (these are lightweight)
   const textOpacity = useTransform(scrollYProgress, [0.7, 0.85], [0, 1])
   const textY = useTransform(scrollYProgress, [0.7, 0.85], [50, 0])
   const glowOpacity = useTransform(scrollYProgress, [0, 0.3], [0, 0.8])
@@ -1487,54 +1466,33 @@ function UnboxingSection() {
   const raspberryCount = isMobile ? 12 : 25
 
   return (
-    <section ref={containerRef} className={isMobile ? "h-screen relative" : "h-[300vh] relative"}>
-      <div className={isMobile ? "h-screen overflow-hidden bg-black" : "sticky top-0 h-screen overflow-hidden bg-black"}>
+    <section ref={containerRef} className="h-[300vh] relative">
+      <div className="sticky top-0 h-screen overflow-hidden bg-black">
         {/* Background glow effect */}
-        {isMobile ? (
-          <div
-            className="absolute inset-0 flex items-center justify-center pointer-events-none"
-            style={{ opacity: isVisible ? 0.8 : 0, transition: 'opacity 0.5s ease' }}
-          >
+        <motion.div
+          style={{ opacity: glowOpacity }}
+          className="absolute inset-0 flex items-center justify-center pointer-events-none"
+        >
+          {isMobile ? (
             <div
               className="w-[600px] h-[600px] rounded-full"
               style={{ background: 'radial-gradient(circle, rgba(59, 130, 246, 0.4) 0%, transparent 70%)' }}
             />
-          </div>
-        ) : (
-          <motion.div
-            style={{ opacity: glowOpacity }}
-            className="absolute inset-0 flex items-center justify-center pointer-events-none"
-          >
+          ) : (
             <div className="w-[600px] h-[600px] bg-blue-500/40 rounded-full blur-[150px]" />
-          </motion.div>
-        )}
+          )}
+        </motion.div>
 
         {/* Title that appears at start */}
-        {isMobile ? (
-          <div
-            className="absolute top-1/3 left-0 right-0 text-center z-10"
-            style={{
-              opacity: isVisible ? 1 : 0,
-              transform: isVisible ? 'scale(1)' : 'scale(0.8)',
-              transition: 'opacity 0.5s ease, transform 0.5s ease'
-            }}
-          >
-            <h2 className="text-5xl font-black text-white mb-2">
-              <span className="gradient-text">BLUE RASPBERRY</span>
-            </h2>
-            <p className="text-white/60 text-xl tracking-wider">FLAVOR EXPLOSION</p>
-          </div>
-        ) : (
-          <motion.div
-            style={{ opacity: titleOpacity, scale: titleScale }}
-            className="absolute top-1/3 left-0 right-0 text-center z-10"
-          >
-            <h2 className="text-5xl md:text-8xl font-black text-white mb-2">
-              <span className="gradient-text">BLUE RASPBERRY</span>
-            </h2>
-            <p className="text-white/60 text-xl md:text-2xl tracking-wider">FLAVOR EXPLOSION</p>
-          </motion.div>
-        )}
+        <motion.div
+          style={{ opacity: titleOpacity, scale: titleScale }}
+          className="absolute top-1/3 left-0 right-0 text-center z-10"
+        >
+          <h2 className="text-5xl md:text-8xl font-black text-white mb-2">
+            <span className="gradient-text">BLUE RASPBERRY</span>
+          </h2>
+          <p className="text-white/60 text-xl md:text-2xl tracking-wider">FLAVOR EXPLOSION</p>
+        </motion.div>
 
         {/* Falling raspberries */}
         <div className="absolute inset-0 overflow-hidden">
@@ -1545,47 +1503,28 @@ function UnboxingSection() {
               scrollYProgress={scrollYProgress}
               total={raspberryCount}
               isMobile={isMobile}
-              isVisible={isVisible}
             />
           ))}
         </div>
 
         {/* Text overlay - appears at end */}
-        {isMobile ? (
-          <div
-            className="absolute bottom-20 left-0 right-0 text-center z-10"
-            style={{
-              opacity: isVisible ? 1 : 0,
-              transform: isVisible ? 'translateY(0)' : 'translateY(50px)',
-              transition: 'opacity 0.5s ease 2s, transform 0.5s ease 2s'
-            }}
-          >
-            <h2 className="text-4xl font-black text-white mb-4">
-              TASTE THE <span className="gradient-text">POWER</span>
-            </h2>
-            <p className="text-white/60 text-lg">120 gummies of pure blue raspberry goodness</p>
-          </div>
-        ) : (
-          <motion.div
-            style={{ opacity: textOpacity, y: textY }}
-            className="absolute bottom-20 md:bottom-28 left-0 right-0 text-center z-10"
-          >
-            <h2 className="text-4xl md:text-6xl font-black text-white mb-4">
-              TASTE THE <span className="gradient-text">POWER</span>
-            </h2>
-            <p className="text-white/60 text-lg md:text-xl">120 gummies of pure blue raspberry goodness</p>
-          </motion.div>
-        )}
+        <motion.div
+          style={{ opacity: textOpacity, y: textY }}
+          className="absolute bottom-20 md:bottom-28 left-0 right-0 text-center z-10"
+        >
+          <h2 className="text-4xl md:text-6xl font-black text-white mb-4">
+            TASTE THE <span className="gradient-text">POWER</span>
+          </h2>
+          <p className="text-white/60 text-lg md:text-xl">120 gummies of pure blue raspberry goodness</p>
+        </motion.div>
 
-        {/* Scroll progress indicator - desktop only */}
-        {!isMobile && (
-          <div className="absolute bottom-8 left-1/2 -translate-x-1/2 z-10">
-            <motion.div
-              style={{ scaleX: scrollYProgress }}
-              className="w-32 h-1 bg-blue-400 origin-left rounded-full"
-            />
-          </div>
-        )}
+        {/* Scroll progress indicator */}
+        <div className="absolute bottom-8 left-1/2 -translate-x-1/2 z-10">
+          <motion.div
+            style={{ scaleX: scrollYProgress }}
+            className="w-32 h-1 bg-blue-400 origin-left rounded-full"
+          />
+        </div>
       </div>
     </section>
   )
