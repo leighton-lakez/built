@@ -1531,153 +1531,275 @@ function UnboxingSection() {
   )
 }
 
-// Interactive 3D Gummy Component
-function SquishyGummy({ onBite, isBitten, squeeze }) {
-  const meshRef = useRef()
+// Interactive 3D Gummy Bear Component
+function SquishyGummy({ onBite, biteCount, squeeze, isSqueezing }) {
+  const groupRef = useRef()
+  const bodyRef = useRef()
   const [hovered, setHovered] = useState(false)
 
+  // Animate squeeze effect
   useFrame((state) => {
-    if (meshRef.current) {
-      // Subtle idle animation
-      meshRef.current.rotation.y += 0.005
-      meshRef.current.rotation.x = Math.sin(state.clock.elapsedTime * 0.5) * 0.1
+    if (groupRef.current) {
+      // Gentle rotation
+      groupRef.current.rotation.y = Math.sin(state.clock.elapsedTime * 0.5) * 0.3
+    }
+
+    if (bodyRef.current) {
+      // Squeeze animation - squash and stretch
+      const targetScaleY = isSqueezing ? 0.6 : 1
+      const targetScaleX = isSqueezing ? 1.4 : 1
+      const targetScaleZ = isSqueezing ? 1.4 : 1
+
+      bodyRef.current.scale.y += (targetScaleY - bodyRef.current.scale.y) * 0.15
+      bodyRef.current.scale.x += (targetScaleX - bodyRef.current.scale.x) * 0.15
+      bodyRef.current.scale.z += (targetScaleZ - bodyRef.current.scale.z) * 0.15
+
+      // Bounce back effect
+      if (!isSqueezing) {
+        bodyRef.current.position.y = Math.sin(state.clock.elapsedTime * 2) * 0.05
+      } else {
+        bodyRef.current.position.y = -0.3
+      }
     }
   })
 
-  // Gummy shape - pill/capsule like
-  const gummyGeometry = useMemo(() => {
-    const shape = new THREE.Shape()
-    // Create rounded rectangle shape for gummy
-    const width = 1.2
-    const height = 0.8
-    const radius = 0.35
-
-    shape.moveTo(-width/2 + radius, -height/2)
-    shape.lineTo(width/2 - radius, -height/2)
-    shape.quadraticCurveTo(width/2, -height/2, width/2, -height/2 + radius)
-    shape.lineTo(width/2, height/2 - radius)
-    shape.quadraticCurveTo(width/2, height/2, width/2 - radius, height/2)
-    shape.lineTo(-width/2 + radius, height/2)
-    shape.quadraticCurveTo(-width/2, height/2, -width/2, height/2 - radius)
-    shape.lineTo(-width/2, -height/2 + radius)
-    shape.quadraticCurveTo(-width/2, -height/2, -width/2 + radius, -height/2)
-
-    const extrudeSettings = {
-      steps: 2,
-      depth: 0.5,
-      bevelEnabled: true,
-      bevelThickness: 0.2,
-      bevelSize: 0.2,
-      bevelOffset: 0,
-      bevelSegments: 8
-    }
-
-    return new THREE.ExtrudeGeometry(shape, extrudeSettings)
-  }, [])
+  // Calculate how much of the gummy is "eaten"
+  const bitePercentage = Math.min(biteCount * 0.15, 0.9)
+  const remainingScale = 1 - bitePercentage
 
   return (
-    <group ref={meshRef}>
-      <mesh
-        geometry={gummyGeometry}
-        onPointerOver={() => setHovered(true)}
-        onPointerOut={() => setHovered(false)}
-        onClick={onBite}
-        position={[0, 0, -0.25]}
-      >
-        <MeshDistortMaterial
-          color={isBitten ? "#2563eb" : "#3b82f6"}
-          roughness={0.2}
-          metalness={0.1}
-          distort={squeeze * 0.3 + (hovered ? 0.15 : 0.05)}
-          speed={2}
-          transparent
-          opacity={0.9}
-        />
-      </mesh>
-
-      {/* Bite mark */}
-      {isBitten && (
-        <mesh position={[0.5, 0.2, 0.1]}>
-          <sphereGeometry args={[0.35, 16, 16]} />
-          <meshBasicMaterial color="#000000" />
+    <group ref={groupRef}>
+      <group ref={bodyRef} scale={[1, 1, 1]}>
+        {/* Main body - big sphere */}
+        <mesh
+          position={[0, 0, 0]}
+          onPointerOver={() => setHovered(true)}
+          onPointerOut={() => setHovered(false)}
+          onClick={onBite}
+          scale={[remainingScale, remainingScale, remainingScale]}
+        >
+          <sphereGeometry args={[1, 32, 32]} />
+          <MeshDistortMaterial
+            color="#3b82f6"
+            roughness={0.3}
+            metalness={0.1}
+            distort={isSqueezing ? 0.5 : (hovered ? 0.2 : 0.1)}
+            speed={isSqueezing ? 8 : 3}
+            transparent
+            opacity={0.92}
+          />
         </mesh>
-      )}
 
-      {/* Gummy shine/highlight */}
-      <mesh position={[-0.3, 0.25, 0.3]} scale={0.15}>
-        <sphereGeometry args={[1, 16, 16]} />
-        <meshBasicMaterial color="#ffffff" transparent opacity={0.6} />
-      </mesh>
-      <mesh position={[-0.15, 0.2, 0.32]} scale={0.08}>
-        <sphereGeometry args={[1, 16, 16]} />
-        <meshBasicMaterial color="#ffffff" transparent opacity={0.4} />
-      </mesh>
+        {/* Head */}
+        <mesh position={[0, 1.1 * remainingScale, 0]} scale={remainingScale * 0.7}>
+          <sphereGeometry args={[1, 32, 32]} />
+          <MeshDistortMaterial
+            color="#60a5fa"
+            roughness={0.3}
+            metalness={0.1}
+            distort={isSqueezing ? 0.4 : 0.1}
+            speed={isSqueezing ? 8 : 3}
+            transparent
+            opacity={0.92}
+          />
+        </mesh>
+
+        {/* Left ear */}
+        <mesh position={[-0.45 * remainingScale, 1.6 * remainingScale, 0]} scale={remainingScale * 0.35}>
+          <sphereGeometry args={[1, 16, 16]} />
+          <MeshDistortMaterial
+            color="#3b82f6"
+            roughness={0.3}
+            distort={isSqueezing ? 0.3 : 0.05}
+            speed={3}
+            transparent
+            opacity={0.92}
+          />
+        </mesh>
+
+        {/* Right ear */}
+        <mesh position={[0.45 * remainingScale, 1.6 * remainingScale, 0]} scale={remainingScale * 0.35}>
+          <sphereGeometry args={[1, 16, 16]} />
+          <MeshDistortMaterial
+            color="#3b82f6"
+            roughness={0.3}
+            distort={isSqueezing ? 0.3 : 0.05}
+            speed={3}
+            transparent
+            opacity={0.92}
+          />
+        </mesh>
+
+        {/* Left arm */}
+        <mesh position={[-0.9 * remainingScale, 0.2 * remainingScale, 0]} scale={[remainingScale * 0.35, remainingScale * 0.5, remainingScale * 0.35]}>
+          <sphereGeometry args={[1, 16, 16]} />
+          <MeshDistortMaterial
+            color="#3b82f6"
+            roughness={0.3}
+            distort={isSqueezing ? 0.4 : 0.1}
+            speed={3}
+            transparent
+            opacity={0.92}
+          />
+        </mesh>
+
+        {/* Right arm */}
+        <mesh position={[0.9 * remainingScale, 0.2 * remainingScale, 0]} scale={[remainingScale * 0.35, remainingScale * 0.5, remainingScale * 0.35]}>
+          <sphereGeometry args={[1, 16, 16]} />
+          <MeshDistortMaterial
+            color="#3b82f6"
+            roughness={0.3}
+            distort={isSqueezing ? 0.4 : 0.1}
+            speed={3}
+            transparent
+            opacity={0.92}
+          />
+        </mesh>
+
+        {/* Left leg */}
+        <mesh position={[-0.4 * remainingScale, -0.9 * remainingScale, 0]} scale={[remainingScale * 0.35, remainingScale * 0.45, remainingScale * 0.35]}>
+          <sphereGeometry args={[1, 16, 16]} />
+          <MeshDistortMaterial
+            color="#3b82f6"
+            roughness={0.3}
+            distort={isSqueezing ? 0.4 : 0.1}
+            speed={3}
+            transparent
+            opacity={0.92}
+          />
+        </mesh>
+
+        {/* Right leg */}
+        <mesh position={[0.4 * remainingScale, -0.9 * remainingScale, 0]} scale={[remainingScale * 0.35, remainingScale * 0.45, remainingScale * 0.35]}>
+          <sphereGeometry args={[1, 16, 16]} />
+          <MeshDistortMaterial
+            color="#3b82f6"
+            roughness={0.3}
+            distort={isSqueezing ? 0.4 : 0.1}
+            speed={3}
+            transparent
+            opacity={0.92}
+          />
+        </mesh>
+
+        {/* Eyes */}
+        <mesh position={[-0.2 * remainingScale, 1.2 * remainingScale, 0.55 * remainingScale]} scale={remainingScale * 0.12}>
+          <sphereGeometry args={[1, 16, 16]} />
+          <meshBasicMaterial color="#1e3a8a" />
+        </mesh>
+        <mesh position={[0.2 * remainingScale, 1.2 * remainingScale, 0.55 * remainingScale]} scale={remainingScale * 0.12}>
+          <sphereGeometry args={[1, 16, 16]} />
+          <meshBasicMaterial color="#1e3a8a" />
+        </mesh>
+
+        {/* Nose */}
+        <mesh position={[0, 1.0 * remainingScale, 0.6 * remainingScale]} scale={remainingScale * 0.08}>
+          <sphereGeometry args={[1, 16, 16]} />
+          <meshBasicMaterial color="#1e40af" />
+        </mesh>
+
+        {/* Belly highlight - shiny spot */}
+        <mesh position={[-0.2, 0.2, 0.85]} scale={0.25}>
+          <sphereGeometry args={[1, 16, 16]} />
+          <meshBasicMaterial color="#ffffff" transparent opacity={0.4} />
+        </mesh>
+        <mesh position={[-0.1, 0.35, 0.8]} scale={0.12}>
+          <sphereGeometry args={[1, 16, 16]} />
+          <meshBasicMaterial color="#ffffff" transparent opacity={0.6} />
+        </mesh>
+      </group>
+
+      {/* Bite particles when bitten */}
+      {biteCount > 0 && (
+        <group>
+          {[...Array(Math.min(biteCount * 2, 10))].map((_, i) => (
+            <mesh
+              key={i}
+              position={[
+                (Math.random() - 0.5) * 3,
+                (Math.random() - 0.5) * 3 - 1,
+                (Math.random() - 0.5) * 2
+              ]}
+              scale={0.1 + Math.random() * 0.15}
+            >
+              <sphereGeometry args={[1, 8, 8]} />
+              <meshBasicMaterial color="#3b82f6" transparent opacity={0.7} />
+            </mesh>
+          ))}
+        </group>
+      )}
     </group>
   )
 }
 
 // Interactive Gummy Experience Section
 function InteractiveGummySection() {
-  const [isBitten, setIsBitten] = useState(false)
-  const [squeeze, setSqueeze] = useState(0)
+  const [isSqueezing, setIsSqueezing] = useState(false)
   const [biteCount, setBiteCount] = useState(0)
+  const [showBiteEffect, setShowBiteEffect] = useState(false)
   const containerRef = useRef()
   const isMobile = useIsMobile()
 
   // Sound effects
   const playSquishSound = () => {
-    const audioContext = new (window.AudioContext || window.webkitAudioContext)()
-    const oscillator = audioContext.createOscillator()
-    const gainNode = audioContext.createGain()
+    try {
+      const audioContext = new (window.AudioContext || window.webkitAudioContext)()
+      const oscillator = audioContext.createOscillator()
+      const gainNode = audioContext.createGain()
 
-    oscillator.connect(gainNode)
-    gainNode.connect(audioContext.destination)
+      oscillator.connect(gainNode)
+      gainNode.connect(audioContext.destination)
 
-    oscillator.frequency.setValueAtTime(150, audioContext.currentTime)
-    oscillator.frequency.exponentialRampToValueAtTime(80, audioContext.currentTime + 0.1)
+      oscillator.frequency.setValueAtTime(200, audioContext.currentTime)
+      oscillator.frequency.exponentialRampToValueAtTime(50, audioContext.currentTime + 0.2)
 
-    gainNode.gain.setValueAtTime(0.3, audioContext.currentTime)
-    gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.15)
+      gainNode.gain.setValueAtTime(0.4, audioContext.currentTime)
+      gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.25)
 
-    oscillator.start(audioContext.currentTime)
-    oscillator.stop(audioContext.currentTime + 0.15)
+      oscillator.start(audioContext.currentTime)
+      oscillator.stop(audioContext.currentTime + 0.25)
+    } catch (e) {}
   }
 
   const playBiteSound = () => {
-    const audioContext = new (window.AudioContext || window.webkitAudioContext)()
-    const oscillator = audioContext.createOscillator()
-    const gainNode = audioContext.createGain()
+    try {
+      const audioContext = new (window.AudioContext || window.webkitAudioContext)()
 
-    oscillator.connect(gainNode)
-    gainNode.connect(audioContext.destination)
+      // Crunch sound - multiple oscillators
+      for (let i = 0; i < 3; i++) {
+        const oscillator = audioContext.createOscillator()
+        const gainNode = audioContext.createGain()
 
-    oscillator.type = 'square'
-    oscillator.frequency.setValueAtTime(200, audioContext.currentTime)
-    oscillator.frequency.exponentialRampToValueAtTime(50, audioContext.currentTime + 0.05)
+        oscillator.connect(gainNode)
+        gainNode.connect(audioContext.destination)
 
-    gainNode.gain.setValueAtTime(0.2, audioContext.currentTime)
-    gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.1)
+        oscillator.type = 'sawtooth'
+        oscillator.frequency.setValueAtTime(300 + i * 100, audioContext.currentTime)
+        oscillator.frequency.exponentialRampToValueAtTime(50, audioContext.currentTime + 0.08)
 
-    oscillator.start(audioContext.currentTime)
-    oscillator.stop(audioContext.currentTime + 0.1)
+        gainNode.gain.setValueAtTime(0.15, audioContext.currentTime + i * 0.02)
+        gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.1 + i * 0.02)
+
+        oscillator.start(audioContext.currentTime + i * 0.02)
+        oscillator.stop(audioContext.currentTime + 0.15)
+      }
+    } catch (e) {}
   }
 
   const handleBite = () => {
     playBiteSound()
-    setIsBitten(true)
     setBiteCount(prev => prev + 1)
-
-    // Reset after animation
-    setTimeout(() => setIsBitten(false), 2000)
+    setShowBiteEffect(true)
+    setTimeout(() => setShowBiteEffect(false), 300)
   }
 
   const handlePointerDown = () => {
     playSquishSound()
-    setSqueeze(1)
+    setIsSqueezing(true)
   }
 
   const handlePointerUp = () => {
-    setSqueeze(0)
+    setIsSqueezing(false)
   }
 
   return (
@@ -1704,27 +1826,31 @@ function InteractiveGummySection() {
           onPointerUp={handlePointerUp}
           onPointerLeave={handlePointerUp}
         >
-          <Canvas camera={{ position: [0, 0, 4], fov: 45 }}>
-            <ambientLight intensity={0.5} />
-            <pointLight position={[10, 10, 10]} intensity={1} />
+          <Canvas camera={{ position: [0, 0, 5], fov: 45 }}>
+            <ambientLight intensity={0.6} />
+            <pointLight position={[10, 10, 10]} intensity={1.2} />
             <pointLight position={[-10, -10, -10]} intensity={0.5} color="#3b82f6" />
-            <spotLight position={[0, 5, 5]} intensity={0.8} angle={0.3} penumbra={1} />
+            <pointLight position={[0, -5, 5]} intensity={0.5} color="#60a5fa" />
+            <spotLight position={[0, 5, 5]} intensity={1} angle={0.3} penumbra={1} />
 
             <Suspense fallback={null}>
-              <Float speed={2} rotationIntensity={0.5} floatIntensity={0.5}>
-                <SquishyGummy
-                  onBite={handleBite}
-                  isBitten={isBitten}
-                  squeeze={squeeze}
-                />
-              </Float>
+              <SquishyGummy
+                onBite={handleBite}
+                biteCount={biteCount}
+                isSqueezing={isSqueezing}
+              />
               <Environment preset="city" />
             </Suspense>
 
             <EffectComposer>
-              <Bloom luminanceThreshold={0.8} luminanceSmoothing={0.9} height={300} />
+              <Bloom luminanceThreshold={0.7} luminanceSmoothing={0.9} height={300} intensity={0.5} />
             </EffectComposer>
           </Canvas>
+
+          {/* Bite flash effect */}
+          {showBiteEffect && (
+            <div className="absolute inset-0 bg-blue-400/30 pointer-events-none animate-pulse" />
+          )}
 
           {/* Bite counter */}
           <div className="absolute top-6 right-6 bg-black/50 backdrop-blur-sm border border-white/20 rounded-full px-6 py-3">
