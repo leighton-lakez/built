@@ -435,7 +435,10 @@ canvas {
     transform: translateY(0) rotate(0deg);
     opacity: 0;
   }
-  10% {
+  8% {
+    opacity: 1;
+  }
+  85% {
     opacity: 1;
   }
   100% {
@@ -446,7 +449,7 @@ canvas {
 
 .mobile-raspberry-fall {
   animation-name: mobileRaspberryFall;
-  animation-timing-function: ease-out;
+  animation-timing-function: ease-in-out;
   animation-fill-mode: forwards;
   animation-iteration-count: infinite;
 }
