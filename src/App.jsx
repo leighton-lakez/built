@@ -1357,20 +1357,21 @@ function FallingRaspberry({ index, scrollYProgress, total, isMobile }) {
     return `translate3d(${wobbleX}px, ${yPixels}px, 0) rotate(${currentRotation}deg)`
   })
 
-  // Mobile: CSS scroll-driven animation (compositor thread)
+  // Mobile: CSS animation triggered on visibility (smooth, no JS per-frame)
   if (isMobile) {
-    // Stagger the animation start position for each raspberry
-    const staggerDelay = (index / total) * 100 // percentage delay
+    const animationDelay = (index / total) * 2 // Stagger over 2 seconds
+    const animationDuration = 4 + (index % 3) // 4-6 seconds
 
     return (
       <div
-        className="absolute pointer-events-none raspberry-scroll-animate"
+        className="absolute pointer-events-none mobile-raspberry-fall"
         style={{
           left: `${50 + startX}%`,
-          top: 0,
+          top: '-15%',
           width: size,
           height: size,
-          animationDelay: `${-staggerDelay}%`,
+          animationDelay: `${animationDelay}s`,
+          animationDuration: `${animationDuration}s`,
         }}
       >
         <svg viewBox="0 0 100 100" className="w-full h-full">
@@ -1466,7 +1467,7 @@ function UnboxingSection() {
   const raspberryCount = isMobile ? 12 : 25
 
   return (
-    <section ref={containerRef} className="h-[300vh] relative">
+    <section ref={containerRef} className={isMobile ? "h-[200vh] relative" : "h-[300vh] relative"}>
       <div className="sticky top-0 h-screen overflow-hidden bg-black">
         {/* Background glow effect */}
         <motion.div

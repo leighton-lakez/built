@@ -429,24 +429,24 @@ canvas {
   animation: product-glow 3s ease-in-out infinite;
 }
 
-/* Mobile raspberry scroll-driven animation - runs on compositor thread */
-@keyframes raspberryScrollFall {
+/* Mobile raspberry CSS animation - runs on compositor thread */
+@keyframes mobileRaspberryFall {
   0% {
-    transform: translateY(-15vh) rotate(0deg);
+    transform: translateY(0) rotate(0deg);
     opacity: 0;
   }
   10% {
     opacity: 1;
   }
   100% {
-    transform: translateY(120vh) rotate(360deg);
-    opacity: 1;
+    transform: translateY(135vh) rotate(360deg);
+    opacity: 0;
   }
 }
 
-/* Scroll-driven animation for raspberries */
-.raspberry-scroll-animate {
-  animation: raspberryScrollFall linear both;
-  animation-timeline: view();
-  animation-range: entry 0% exit 100%;
+.mobile-raspberry-fall {
+  animation-name: mobileRaspberryFall;
+  animation-timing-function: ease-out;
+  animation-fill-mode: forwards;
+  animation-iteration-count: infinite;
 }
