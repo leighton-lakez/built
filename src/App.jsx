@@ -1531,6 +1531,494 @@ function UnboxingSection() {
   )
 }
 
+// Interactive 3D Gummy Component
+function SquishyGummy({ onBite, isBitten, squeeze }) {
+  const meshRef = useRef()
+  const [hovered, setHovered] = useState(false)
+
+  useFrame((state) => {
+    if (meshRef.current) {
+      // Subtle idle animation
+      meshRef.current.rotation.y += 0.005
+      meshRef.current.rotation.x = Math.sin(state.clock.elapsedTime * 0.5) * 0.1
+    }
+  })
+
+  // Gummy shape - pill/capsule like
+  const gummyGeometry = useMemo(() => {
+    const shape = new THREE.Shape()
+    // Create rounded rectangle shape for gummy
+    const width = 1.2
+    const height = 0.8
+    const radius = 0.35
+
+    shape.moveTo(-width/2 + radius, -height/2)
+    shape.lineTo(width/2 - radius, -height/2)
+    shape.quadraticCurveTo(width/2, -height/2, width/2, -height/2 + radius)
+    shape.lineTo(width/2, height/2 - radius)
+    shape.quadraticCurveTo(width/2, height/2, width/2 - radius, height/2)
+    shape.lineTo(-width/2 + radius, height/2)
+    shape.quadraticCurveTo(-width/2, height/2, -width/2, height/2 - radius)
+    shape.lineTo(-width/2, -height/2 + radius)
+    shape.quadraticCurveTo(-width/2, -height/2, -width/2 + radius, -height/2)
+
+    const extrudeSettings = {
+      steps: 2,
+      depth: 0.5,
+      bevelEnabled: true,
+      bevelThickness: 0.2,
+      bevelSize: 0.2,
+      bevelOffset: 0,
+      bevelSegments: 8
+    }
+
+    return new THREE.ExtrudeGeometry(shape, extrudeSettings)
+  }, [])
+
+  return (
+    <group ref={meshRef}>
+      <mesh
+        geometry={gummyGeometry}
+        onPointerOver={() => setHovered(true)}
+        onPointerOut={() => setHovered(false)}
+        onClick={onBite}
+        position={[0, 0, -0.25]}
+      >
+        <MeshDistortMaterial
+          color={isBitten ? "#2563eb" : "#3b82f6"}
+          roughness={0.2}
+          metalness={0.1}
+          distort={squeeze * 0.3 + (hovered ? 0.15 : 0.05)}
+          speed={2}
+          transparent
+          opacity={0.9}
+        />
+      </mesh>
+
+      {/* Bite mark */}
+      {isBitten && (
+        <mesh position={[0.5, 0.2, 0.1]}>
+          <sphereGeometry args={[0.35, 16, 16]} />
+          <meshBasicMaterial color="#000000" />
+        </mesh>
+      )}
+
+      {/* Gummy shine/highlight */}
+      <mesh position={[-0.3, 0.25, 0.3]} scale={0.15}>
+        <sphereGeometry args={[1, 16, 16]} />
+        <meshBasicMaterial color="#ffffff" transparent opacity={0.6} />
+      </mesh>
+      <mesh position={[-0.15, 0.2, 0.32]} scale={0.08}>
+        <sphereGeometry args={[1, 16, 16]} />
+        <meshBasicMaterial color="#ffffff" transparent opacity={0.4} />
+      </mesh>
+    </group>
+  )
+}
+
+// Interactive Gummy Experience Section
+function InteractiveGummySection() {
+  const [isBitten, setIsBitten] = useState(false)
+  const [squeeze, setSqueeze] = useState(0)
+  const [biteCount, setBiteCount] = useState(0)
+  const containerRef = useRef()
+  const isMobile = useIsMobile()
+
+  // Sound effects
+  const playSquishSound = () => {
+    const audioContext = new (window.AudioContext || window.webkitAudioContext)()
+    const oscillator = audioContext.createOscillator()
+    const gainNode = audioContext.createGain()
+
+    oscillator.connect(gainNode)
+    gainNode.connect(audioContext.destination)
+
+    oscillator.frequency.setValueAtTime(150, audioContext.currentTime)
+    oscillator.frequency.exponentialRampToValueAtTime(80, audioContext.currentTime + 0.1)
+
+    gainNode.gain.setValueAtTime(0.3, audioContext.currentTime)
+    gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.15)
+
+    oscillator.start(audioContext.currentTime)
+    oscillator.stop(audioContext.currentTime + 0.15)
+  }
+
+  const playBiteSound = () => {
+    const audioContext = new (window.AudioContext || window.webkitAudioContext)()
+    const oscillator = audioContext.createOscillator()
+    const gainNode = audioContext.createGain()
+
+    oscillator.connect(gainNode)
+    gainNode.connect(audioContext.destination)
+
+    oscillator.type = 'square'
+    oscillator.frequency.setValueAtTime(200, audioContext.currentTime)
+    oscillator.frequency.exponentialRampToValueAtTime(50, audioContext.currentTime + 0.05)
+
+    gainNode.gain.setValueAtTime(0.2, audioContext.currentTime)
+    gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.1)
+
+    oscillator.start(audioContext.currentTime)
+    oscillator.stop(audioContext.currentTime + 0.1)
+  }
+
+  const handleBite = () => {
+    playBiteSound()
+    setIsBitten(true)
+    setBiteCount(prev => prev + 1)
+
+    // Reset after animation
+    setTimeout(() => setIsBitten(false), 2000)
+  }
+
+  const handlePointerDown = () => {
+    playSquishSound()
+    setSqueeze(1)
+  }
+
+  const handlePointerUp = () => {
+    setSqueeze(0)
+  }
+
+  return (
+    <section className="py-32 bg-black relative overflow-hidden">
+      {/* Background elements */}
+      <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+        <span className="text-[20vw] font-black text-white/[0.02] select-none">PLAY</span>
+      </div>
+
+      <div className="max-w-7xl mx-auto px-6">
+        <div className="text-center mb-12">
+          <span className="text-blue-400 text-sm tracking-[0.3em] uppercase">Interactive Experience</span>
+          <h2 className="text-4xl md:text-7xl font-black text-white mt-4">
+            SQUEEZE THE <span className="gradient-text">GUMMY</span>
+          </h2>
+          <p className="text-white/60 mt-4 text-lg">Click to bite • Hold to squeeze • Drag to rotate</p>
+        </div>
+
+        <div
+          ref={containerRef}
+          className="relative h-[500px] md:h-[600px] rounded-3xl overflow-hidden border border-white/10"
+          style={{ background: 'radial-gradient(circle at center, #1e3a8a 0%, #000 70%)' }}
+          onPointerDown={handlePointerDown}
+          onPointerUp={handlePointerUp}
+          onPointerLeave={handlePointerUp}
+        >
+          <Canvas camera={{ position: [0, 0, 4], fov: 45 }}>
+            <ambientLight intensity={0.5} />
+            <pointLight position={[10, 10, 10]} intensity={1} />
+            <pointLight position={[-10, -10, -10]} intensity={0.5} color="#3b82f6" />
+            <spotLight position={[0, 5, 5]} intensity={0.8} angle={0.3} penumbra={1} />
+
+            <Suspense fallback={null}>
+              <Float speed={2} rotationIntensity={0.5} floatIntensity={0.5}>
+                <SquishyGummy
+                  onBite={handleBite}
+                  isBitten={isBitten}
+                  squeeze={squeeze}
+                />
+              </Float>
+              <Environment preset="city" />
+            </Suspense>
+
+            <EffectComposer>
+              <Bloom luminanceThreshold={0.8} luminanceSmoothing={0.9} height={300} />
+            </EffectComposer>
+          </Canvas>
+
+          {/* Bite counter */}
+          <div className="absolute top-6 right-6 bg-black/50 backdrop-blur-sm border border-white/20 rounded-full px-6 py-3">
+            <span className="text-white font-bold">🦷 {biteCount} bites</span>
+          </div>
+
+          {/* Instructions */}
+          <div className="absolute bottom-6 left-1/2 -translate-x-1/2 flex gap-4">
+            <div className="bg-black/50 backdrop-blur-sm border border-white/20 rounded-full px-4 py-2 text-sm text-white/80">
+              {isMobile ? 'Tap' : 'Click'} to bite
+            </div>
+            <div className="bg-black/50 backdrop-blur-sm border border-white/20 rounded-full px-4 py-2 text-sm text-white/80">
+              Hold to squeeze
+            </div>
+          </div>
+        </div>
+
+        {/* Fun stats */}
+        <div className="grid grid-cols-3 gap-4 mt-8">
+          <div className="text-center p-6 border border-white/10 rounded-2xl bg-white/5">
+            <div className="text-3xl md:text-4xl font-black gradient-text">{biteCount}</div>
+            <div className="text-white/60 text-sm mt-1">Total Bites</div>
+          </div>
+          <div className="text-center p-6 border border-white/10 rounded-2xl bg-white/5">
+            <div className="text-3xl md:text-4xl font-black text-blue-400">∞</div>
+            <div className="text-white/60 text-sm mt-1">Squishes Available</div>
+          </div>
+          <div className="text-center p-6 border border-white/10 rounded-2xl bg-white/5">
+            <div className="text-3xl md:text-4xl font-black text-white">0</div>
+            <div className="text-white/60 text-sm mt-1">Calories Consumed</div>
+          </div>
+        </div>
+      </div>
+    </section>
+  )
+}
+
+// AR Experience Section
+function ARExperienceSection() {
+  const [arSupported, setArSupported] = useState(false)
+  const [arActive, setArActive] = useState(false)
+  const isMobile = useIsMobile()
+
+  useEffect(() => {
+    // Check for WebXR AR support
+    if (navigator.xr) {
+      navigator.xr.isSessionSupported('immersive-ar').then((supported) => {
+        setArSupported(supported)
+      }).catch(() => setArSupported(false))
+    }
+  }, [])
+
+  const launchAR = async () => {
+    // For now, we'll show a cool preview. Full AR requires a 3D model file.
+    setArActive(true)
+
+    // If on mobile, try to use the camera
+    if (isMobile && navigator.mediaDevices) {
+      try {
+        const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } })
+        const video = document.getElementById('ar-video')
+        if (video) {
+          video.srcObject = stream
+        }
+      } catch (err) {
+        console.log('Camera access denied')
+      }
+    }
+  }
+
+  const closeAR = () => {
+    setArActive(false)
+    const video = document.getElementById('ar-video')
+    if (video && video.srcObject) {
+      video.srcObject.getTracks().forEach(track => track.stop())
+    }
+  }
+
+  return (
+    <section className="py-32 bg-gradient-to-b from-black via-blue-950/20 to-black relative overflow-hidden">
+      <div className="max-w-7xl mx-auto px-6">
+        <div className="grid md:grid-cols-2 gap-12 items-center">
+          {/* Left - Info */}
+          <div>
+            <span className="text-blue-400 text-sm tracking-[0.3em] uppercase">Augmented Reality</span>
+            <h2 className="text-4xl md:text-6xl font-black text-white mt-4">
+              SEE IT IN <span className="gradient-text">YOUR SPACE</span>
+            </h2>
+            <p className="text-white/60 mt-6 text-lg leading-relaxed">
+              Use your phone's camera to place BUILT in your real environment.
+              See exactly how it looks on your desk, kitchen counter, or gym bag before you buy.
+            </p>
+
+            <div className="flex flex-col sm:flex-row gap-4 mt-8">
+              <button
+                onClick={launchAR}
+                className="group relative px-8 py-4 bg-blue-500 hover:bg-blue-600 text-white font-bold rounded-full transition-all overflow-hidden"
+              >
+                <span className="relative z-10 flex items-center justify-center gap-2">
+                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
+                  </svg>
+                  Launch AR Experience
+                </span>
+                <div className="absolute inset-0 bg-gradient-to-r from-blue-600 to-blue-400 opacity-0 group-hover:opacity-100 transition-opacity" />
+              </button>
+            </div>
+
+            {/* Features */}
+            <div className="grid grid-cols-2 gap-4 mt-12">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-full bg-blue-500/20 flex items-center justify-center">
+                  <span className="text-blue-400">📱</span>
+                </div>
+                <span className="text-white/80 text-sm">Works on mobile</span>
+              </div>
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-full bg-blue-500/20 flex items-center justify-center">
+                  <span className="text-blue-400">🔄</span>
+                </div>
+                <span className="text-white/80 text-sm">360° rotation</span>
+              </div>
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-full bg-blue-500/20 flex items-center justify-center">
+                  <span className="text-blue-400">📏</span>
+                </div>
+                <span className="text-white/80 text-sm">True to scale</span>
+              </div>
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-full bg-blue-500/20 flex items-center justify-center">
+                  <span className="text-blue-400">📸</span>
+                </div>
+                <span className="text-white/80 text-sm">Take photos</span>
+              </div>
+            </div>
+          </div>
+
+          {/* Right - 3D Preview */}
+          <div className="relative">
+            <div className="relative h-[400px] md:h-[500px] rounded-3xl overflow-hidden border border-white/10 bg-gradient-to-br from-blue-900/30 to-black">
+              <Canvas camera={{ position: [0, 0, 5], fov: 45 }}>
+                <ambientLight intensity={0.6} />
+                <pointLight position={[10, 10, 10]} intensity={1} />
+                <spotLight position={[0, 10, 0]} intensity={0.5} />
+
+                <Suspense fallback={null}>
+                  <Float speed={1.5} rotationIntensity={0.3} floatIntensity={0.5}>
+                    <group scale={1.5}>
+                      {/* Bottle body */}
+                      <mesh position={[0, 0, 0]}>
+                        <cylinderGeometry args={[0.6, 0.7, 2, 32]} />
+                        <meshPhysicalMaterial
+                          color="#1e3a8a"
+                          roughness={0.1}
+                          metalness={0.3}
+                          transparent
+                          opacity={0.9}
+                          clearcoat={1}
+                        />
+                      </mesh>
+                      {/* Bottle cap */}
+                      <mesh position={[0, 1.2, 0]}>
+                        <cylinderGeometry args={[0.45, 0.5, 0.4, 32]} />
+                        <meshStandardMaterial color="#3b82f6" roughness={0.3} metalness={0.5} />
+                      </mesh>
+                      {/* Label */}
+                      <mesh position={[0, 0, 0.71]}>
+                        <planeGeometry args={[1, 1.2]} />
+                        <meshBasicMaterial color="#60a5fa" transparent opacity={0.8} />
+                      </mesh>
+                      {/* BUILT text on label */}
+                      <Center position={[0, 0.2, 0.72]}>
+                        <Text
+                          fontSize={0.2}
+                          color="#ffffff"
+                          font="/fonts/Inter-Bold.woff"
+                          anchorX="center"
+                          anchorY="middle"
+                        >
+                          BUILT
+                        </Text>
+                      </Center>
+                    </group>
+                  </Float>
+                  <Environment preset="studio" />
+                </Suspense>
+
+                <EffectComposer>
+                  <Bloom luminanceThreshold={0.9} luminanceSmoothing={0.9} height={300} />
+                </EffectComposer>
+              </Canvas>
+
+              {/* AR scan animation overlay */}
+              <div className="absolute inset-0 pointer-events-none">
+                <div className="absolute inset-8 border-2 border-blue-400/30 rounded-2xl">
+                  <div className="absolute top-0 left-0 w-8 h-8 border-l-2 border-t-2 border-blue-400" />
+                  <div className="absolute top-0 right-0 w-8 h-8 border-r-2 border-t-2 border-blue-400" />
+                  <div className="absolute bottom-0 left-0 w-8 h-8 border-l-2 border-b-2 border-blue-400" />
+                  <div className="absolute bottom-0 right-0 w-8 h-8 border-r-2 border-b-2 border-blue-400" />
+                </div>
+                <motion.div
+                  className="absolute left-8 right-8 h-0.5 bg-gradient-to-r from-transparent via-blue-400 to-transparent"
+                  animate={{ top: ['10%', '90%', '10%'] }}
+                  transition={{ duration: 3, repeat: Infinity, ease: 'easeInOut' }}
+                />
+              </div>
+            </div>
+
+            {/* Floating badge */}
+            <motion.div
+              className="absolute -top-4 -right-4 bg-blue-500 text-white px-4 py-2 rounded-full font-bold text-sm"
+              animate={{ y: [0, -5, 0] }}
+              transition={{ duration: 2, repeat: Infinity }}
+            >
+              ✨ Try AR
+            </motion.div>
+          </div>
+        </div>
+      </div>
+
+      {/* AR Overlay Modal */}
+      <AnimatePresence>
+        {arActive && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-[300] bg-black"
+          >
+            {/* Camera feed */}
+            <video
+              id="ar-video"
+              autoPlay
+              playsInline
+              className="absolute inset-0 w-full h-full object-cover"
+            />
+
+            {/* 3D overlay */}
+            <div className="absolute inset-0">
+              <Canvas camera={{ position: [0, 0, 5], fov: 45 }}>
+                <ambientLight intensity={0.8} />
+                <pointLight position={[10, 10, 10]} />
+
+                <Suspense fallback={null}>
+                  <Float speed={1} rotationIntensity={0.2}>
+                    <group scale={1.2} position={[0, -0.5, 0]}>
+                      <mesh>
+                        <cylinderGeometry args={[0.6, 0.7, 2, 32]} />
+                        <meshPhysicalMaterial
+                          color="#1e3a8a"
+                          roughness={0.1}
+                          transparent
+                          opacity={0.95}
+                        />
+                      </mesh>
+                      <mesh position={[0, 1.2, 0]}>
+                        <cylinderGeometry args={[0.45, 0.5, 0.4, 32]} />
+                        <meshStandardMaterial color="#3b82f6" />
+                      </mesh>
+                    </group>
+                  </Float>
+                </Suspense>
+              </Canvas>
+            </div>
+
+            {/* AR UI */}
+            <div className="absolute top-6 left-6 right-6 flex justify-between items-center">
+              <button
+                onClick={closeAR}
+                className="w-12 h-12 bg-black/50 backdrop-blur-sm rounded-full flex items-center justify-center text-white"
+              >
+                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+              <div className="bg-black/50 backdrop-blur-sm rounded-full px-4 py-2 text-white text-sm">
+                Move phone to place product
+              </div>
+            </div>
+
+            {/* Capture button */}
+            <div className="absolute bottom-12 left-1/2 -translate-x-1/2">
+              <button className="w-20 h-20 bg-white rounded-full flex items-center justify-center border-4 border-blue-400">
+                <div className="w-16 h-16 bg-blue-500 rounded-full" />
+              </button>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </section>
+  )
+}
+
 // Testimonials
 function Testimonials() {
   const [active, setActive] = useState(0)
@@ -2206,6 +2694,8 @@ function App() {
           <ProductSection />
           <UnboxingSection />
           <HorizontalFeatures />
+          <InteractiveGummySection />
+          <ARExperienceSection />
           <QuizCTA onStartQuiz={() => setQuizOpen(true)} />
           <Testimonials />
           <BuySection onCheckout={() => setCheckoutOpen(true)} />
