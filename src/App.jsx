@@ -706,7 +706,7 @@ function HorizontalFeatures() {
               <div className="relative h-full p-8 md:p-12 flex flex-col justify-between">
                 <div>
                   <span className="text-blue-400 font-mono text-sm">{feature.num}</span>
-                  <div className="text-8xl mt-4 mb-6 grayscale group-hover:grayscale-0 transition-all duration-500">
+                  <div className="text-8xl mt-4 mb-6">
                     {feature.icon}
                   </div>
                 </div>
