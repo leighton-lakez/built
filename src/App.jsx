@@ -2312,7 +2312,7 @@ function MusicWidget() {
                 {/* Spotify embed */}
                 <div className={`overflow-hidden shadow-2xl shadow-black/50 border border-white/10 ${isMobile ? 'rounded-xl' : 'rounded-2xl'}`}>
                   <iframe
-                    src="https://open.spotify.com/embed/playlist/7ALWnfiamNRTh6IJCZNDaZ?utm_source=generator&theme=0"
+                    src="https://open.spotify.com/embed/playlist/7ALWnfiamNRTh6IJCZNDaZ?utm_source=generator&theme=0&v=2"
                     width={isMobile ? 250 : 320}
                     height={isMobile ? 80 : 152}
                     frameBorder="0"
