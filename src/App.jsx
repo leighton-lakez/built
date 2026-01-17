@@ -2176,12 +2176,15 @@ function CheckoutModal({ isOpen, onClose }) {
   )
 }
 
-// Music Widget
+// Music Widget - Desktop only
 function MusicWidget() {
   const [isExpanded, setIsExpanded] = useState(false)
   const [hasInteracted, setHasInteracted] = useState(false)
   const [showPrompt, setShowPrompt] = useState(true)
   const isMobile = useIsMobile()
+
+  // Don't render on mobile
+  if (isMobile) return null
 
   // Check localStorage for previous interaction
   useEffect(() => {
@@ -2217,46 +2220,27 @@ function MusicWidget() {
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: 30 }}
             transition={{ delay: 2, duration: 0.4 }}
-            className={`fixed z-[200] flex items-center bg-black/90 backdrop-blur-xl border border-white/10 shadow-xl ${
-              isMobile
-                ? 'bottom-4 left-4 gap-2 rounded-full pl-3 pr-2 py-2'
-                : 'bottom-6 left-6 gap-3 rounded-2xl p-4'
-            }`}
+            className="fixed bottom-6 left-6 z-[200] flex items-center gap-3 bg-black/90 backdrop-blur-xl border border-white/10 rounded-2xl p-4 shadow-xl"
           >
-            <div className={`${isMobile ? 'hidden' : 'w-12 h-12 bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl flex items-center justify-center'}`}>
+            <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl flex items-center justify-center">
               <svg className="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 24 24">
                 <path d="M12 3v10.55c-.59-.34-1.27-.55-2-.55-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4V7h4V3h-6z"/>
               </svg>
             </div>
-            {isMobile && (
-              <svg className="w-4 h-4 text-blue-400" fill="currentColor" viewBox="0 0 24 24">
-                <path d="M12 3v10.55c-.59-.34-1.27-.55-2-.55-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4V7h4V3h-6z"/>
-              </svg>
-            )}
-            <div className={isMobile ? '' : 'flex-1'}>
-              {isMobile ? (
-                <span className="text-white/80 text-xs">Music?</span>
-              ) : (
-                <>
-                  <p className="text-white font-semibold text-sm">Enable Music?</p>
-                  <p className="text-white/50 text-xs">Vibe while you browse</p>
-                </>
-              )}
+            <div className="flex-1">
+              <p className="text-white font-semibold text-sm">Enable Music?</p>
+              <p className="text-white/50 text-xs">Vibe while you browse</p>
             </div>
             <div className="flex gap-2">
               <button
                 onClick={enableMusic}
-                className={`bg-blue-500 hover:bg-blue-400 text-white font-bold rounded-full transition-colors ${
-                  isMobile ? 'px-2.5 py-1 text-xs' : 'px-4 py-2 text-sm'
-                }`}
+                className="px-4 py-2 bg-blue-500 hover:bg-blue-400 text-white text-sm font-bold rounded-full transition-colors"
               >
                 Yes
               </button>
               <button
                 onClick={dismissPrompt}
-                className={`bg-white/10 hover:bg-white/20 text-white/60 rounded-full transition-colors ${
-                  isMobile ? 'px-2.5 py-1 text-xs' : 'px-4 py-2 text-sm'
-                }`}
+                className="px-4 py-2 bg-white/10 hover:bg-white/20 text-white/60 text-sm rounded-full transition-colors"
               >
                 No
               </button>
@@ -2270,7 +2254,7 @@ function MusicWidget() {
         <motion.div
           initial={{ opacity: 0, scale: 0.8 }}
           animate={{ opacity: 1, scale: 1 }}
-          className={`fixed z-[200] ${isMobile ? 'bottom-4 left-4' : 'bottom-6 left-6'}`}
+          className="fixed bottom-6 left-6 z-[200]"
         >
           {/* Collapsed state */}
           {!isExpanded && (
@@ -2278,11 +2262,9 @@ function MusicWidget() {
               whileHover={{ scale: 1.1 }}
               whileTap={{ scale: 0.95 }}
               onClick={() => setIsExpanded(true)}
-              className={`bg-gradient-to-br from-blue-500 to-blue-600 rounded-full flex items-center justify-center shadow-lg shadow-blue-500/30 border border-white/20 ${
-                isMobile ? 'w-10 h-10' : 'w-14 h-14'
-              }`}
+              className="w-14 h-14 bg-gradient-to-br from-blue-500 to-blue-600 rounded-full flex items-center justify-center shadow-lg shadow-blue-500/30 border border-white/20"
             >
-              <svg className={`text-white ${isMobile ? 'w-4 h-4' : 'w-6 h-6'}`} fill="currentColor" viewBox="0 0 24 24">
+              <svg className="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 24 24">
                 <path d="M12 3v10.55c-.59-.34-1.27-.55-2-.55-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4V7h4V3h-6z"/>
               </svg>
             </motion.button>
@@ -2300,34 +2282,30 @@ function MusicWidget() {
                 {/* Close/minimize button */}
                 <button
                   onClick={() => setIsExpanded(false)}
-                  className={`absolute bg-black border border-white/20 rounded-full flex items-center justify-center text-white/60 hover:text-white hover:bg-white/10 transition-colors z-10 ${
-                    isMobile ? '-top-1.5 -right-1.5 w-6 h-6' : '-top-2 -right-2 w-8 h-8'
-                  }`}
+                  className="absolute -top-2 -right-2 w-8 h-8 bg-black border border-white/20 rounded-full flex items-center justify-center text-white/60 hover:text-white hover:bg-white/10 transition-colors z-10"
                 >
-                  <svg className={isMobile ? 'w-3 h-3' : 'w-4 h-4'} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
                   </svg>
                 </button>
 
                 {/* Spotify embed */}
-                <div className={`overflow-hidden shadow-2xl shadow-black/50 border border-white/10 ${isMobile ? 'rounded-xl' : 'rounded-2xl'}`}>
+                <div className="rounded-2xl overflow-hidden shadow-2xl shadow-black/50 border border-white/10">
                   <iframe
                     src="https://open.spotify.com/embed/playlist/7ALWnfiamNRTh6IJCZNDaZ?utm_source=generator&theme=0&v=2"
-                    width={isMobile ? 250 : 320}
-                    height={isMobile ? 80 : 152}
+                    width="320"
+                    height="152"
                     frameBorder="0"
                     allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"
                     loading="lazy"
-                    className={isMobile ? 'rounded-xl' : 'rounded-2xl'}
+                    className="rounded-2xl"
                   />
                 </div>
 
-                {/* Label - desktop only */}
-                {!isMobile && (
-                  <div className="mt-2 text-center">
-                    <span className="text-white/40 text-xs">Powered by Spotify</span>
-                  </div>
-                )}
+                {/* Label */}
+                <div className="mt-2 text-center">
+                  <span className="text-white/40 text-xs">Powered by Spotify</span>
+                </div>
               </motion.div>
             )}
           </AnimatePresence>
