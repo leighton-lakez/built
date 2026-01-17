@@ -611,6 +611,7 @@ function Navbar({ onShopNow }) {
 // Hero Section
 function Hero() {
   const containerRef = useRef(null)
+  const [show3D, setShow3D] = useState(false)
   const { scrollYProgress } = useScroll({
     target: containerRef,
     offset: ['start start', 'end start']
@@ -620,6 +621,12 @@ function Hero() {
   const opacity = useTransform(scrollYProgress, [0, 0.5], [1, 0])
   const scale = useTransform(scrollYProgress, [0, 0.5], [1, 0.8])
 
+  // Delay 3D canvas to prevent initial lag
+  useEffect(() => {
+    const timer = setTimeout(() => setShow3D(true), 500)
+    return () => clearTimeout(timer)
+  }, [])
+
   return (
     <motion.section
       ref={containerRef}
@@ -627,16 +634,18 @@ function Hero() {
       className="h-[200vh] relative"
     >
       <div className="sticky top-0 h-screen overflow-hidden bg-black">
-        {/* 3D Background */}
+        {/* 3D Background - delayed load */}
         <div className="absolute inset-0 z-0">
-          <Canvas camera={{ position: [0, 0, 5], fov: 75 }}>
-            <Suspense fallback={null}>
-              <ambientLight intensity={0.5} />
-              <directionalLight position={[10, 10, 5]} intensity={1} />
-              <MorphingSphere />
-              <Environment preset="city" />
-            </Suspense>
-          </Canvas>
+          {show3D && (
+            <Canvas camera={{ position: [0, 0, 5], fov: 75 }}>
+              <Suspense fallback={null}>
+                <ambientLight intensity={0.5} />
+                <directionalLight position={[10, 10, 5]} intensity={1} />
+                <MorphingSphere />
+                <Environment preset="city" />
+              </Suspense>
+            </Canvas>
+          )}
         </div>
 
         {/* Gradient overlays */}
@@ -652,7 +661,7 @@ function Hero() {
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.5 }}
+            transition={{ delay: 0.3, duration: 0.6 }}
             className="flex items-center gap-4 mb-8"
           >
             <div className="w-12 h-px bg-blue-400" />
@@ -663,14 +672,12 @@ function Hero() {
           {/* Main Title */}
           <div className="overflow-hidden">
             <motion.h1
-              initial={{ y: 200 }}
-              animate={{ y: 0 }}
-              transition={{ duration: 1, ease: [0.76, 0, 0.24, 1], delay: 0.2 }}
+              initial={{ y: 200, opacity: 0 }}
+              animate={{ y: 0, opacity: 1 }}
+              transition={{ duration: 0.8, ease: [0.25, 0.1, 0.25, 1], delay: 0.1 }}
               className="text-[15vw] md:text-[12vw] font-black leading-none tracking-tighter text-center"
             >
-              <GlitchText>
-                <span className="gradient-text glow-text">BUILT</span>
-              </GlitchText>
+              <span className="gradient-text">BUILT</span>
             </motion.h1>
           </div>
 
@@ -678,7 +685,7 @@ function Hero() {
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
-            transition={{ delay: 0.8 }}
+            transition={{ delay: 0.5, duration: 0.5 }}
             className="text-2xl md:text-3xl font-bold tracking-[0.2em] text-white/80 mt-2"
           >
             STRONGER
@@ -696,64 +703,40 @@ function Hero() {
             <span className="text-blue-400">Blue Raspberry. 120 Gummies. Pure Power.</span>
           </motion.p>
 
-          {/* Scroll Indicator - Eye-catching */}
+          {/* Scroll Indicator - Simplified for performance */}
           <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 1.5, duration: 0.6 }}
-            className="absolute bottom-8 md:bottom-12 left-1/2 -translate-x-1/2"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 1, duration: 0.5 }}
+            className="absolute bottom-8 md:bottom-12 left-1/2 -translate-x-1/2 cursor-pointer"
+            onClick={() => window.scrollTo({ top: window.innerHeight, behavior: 'smooth' })}
           >
-            <motion.div
-              animate={{ y: [0, 8, 0] }}
-              transition={{ duration: 1.5, repeat: Infinity, ease: 'easeInOut' }}
-              className="flex flex-col items-center gap-3 cursor-pointer group"
-              onClick={() => window.scrollTo({ top: window.innerHeight, behavior: 'smooth' })}
-            >
-              {/* Glowing mouse icon */}
-              <div className="relative">
+            <div className="flex flex-col items-center gap-2">
+              {/* Simple mouse icon */}
+              <div className="w-6 h-10 border-2 border-blue-400/60 rounded-full flex justify-center pt-2">
                 <motion.div
-                  className="absolute inset-0 bg-blue-400 rounded-full blur-xl opacity-50"
-                  animate={{ scale: [1, 1.5, 1], opacity: [0.3, 0.6, 0.3] }}
-                  transition={{ duration: 2, repeat: Infinity }}
+                  className="w-1 h-2 bg-blue-400 rounded-full"
+                  animate={{ y: [0, 6, 0] }}
+                  transition={{ duration: 1.5, repeat: Infinity, ease: 'easeInOut' }}
                 />
-                <div className="relative w-8 h-12 border-2 border-blue-400 rounded-full flex justify-center pt-2">
-                  <motion.div
-                    className="w-1.5 h-3 bg-blue-400 rounded-full"
-                    animate={{ y: [0, 8, 0], opacity: [1, 0.3, 1] }}
-                    transition={{ duration: 1.5, repeat: Infinity }}
-                  />
-                </div>
               </div>
 
-              {/* Text with glow */}
-              <span className="text-sm font-semibold tracking-[0.2em] text-blue-400 uppercase group-hover:text-blue-300 transition-colors">
-                Scroll Down
+              <span className="text-xs tracking-[0.2em] text-white/40 uppercase">
+                Scroll
               </span>
 
-              {/* Animated chevrons */}
-              <div className="flex flex-col items-center -mt-1">
-                <motion.svg
-                  className="w-6 h-6 text-blue-400"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                  animate={{ y: [0, 4, 0], opacity: [0.5, 1, 0.5] }}
-                  transition={{ duration: 1, repeat: Infinity }}
-                >
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                </motion.svg>
-                <motion.svg
-                  className="w-6 h-6 text-blue-400 -mt-3"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                  animate={{ y: [0, 4, 0], opacity: [0.3, 0.7, 0.3] }}
-                  transition={{ duration: 1, repeat: Infinity, delay: 0.15 }}
-                >
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                </motion.svg>
-              </div>
-            </motion.div>
+              {/* Single chevron */}
+              <motion.svg
+                className="w-5 h-5 text-blue-400/60"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+                animate={{ y: [0, 4, 0] }}
+                transition={{ duration: 1.5, repeat: Infinity, ease: 'easeInOut' }}
+              >
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+              </motion.svg>
+            </div>
           </motion.div>
         </motion.div>
 
