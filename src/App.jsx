@@ -128,18 +128,19 @@ function LoadingScreen({ onComplete }) {
   const [terminalLines, setTerminalLines] = useState([])
   const [progress, setProgress] = useState(0)
   const [glitch, setGlitch] = useState(false)
+  const isMobile = useIsMobile()
 
-  // Matrix rain characters
+  // Matrix rain characters - fewer on mobile for performance
   const matrixChars = useMemo(() =>
-    [...Array(50)].map((_, i) => ({
+    [...Array(isMobile ? 15 : 50)].map((_, i) => ({
       id: i,
       x: Math.random() * 100,
       delay: Math.random() * 2,
       duration: Math.random() * 2 + 1,
-      chars: Array(20).fill(0).map(() =>
+      chars: Array(isMobile ? 10 : 20).fill(0).map(() =>
         String.fromCharCode(0x30A0 + Math.random() * 96)
       ).join('')
-    })), []
+    })), [isMobile]
   )
 
   // Fake terminal commands
@@ -176,11 +177,14 @@ function LoadingScreen({ onComplete }) {
       })
     }, 60)
 
-    // Glitch effects
-    const glitchInterval = setInterval(() => {
-      setGlitch(true)
-      setTimeout(() => setGlitch(false), 100)
-    }, 500)
+    // Glitch effects - disabled on mobile for performance
+    let glitchInterval
+    if (!window.matchMedia('(max-width: 768px)').matches) {
+      glitchInterval = setInterval(() => {
+        setGlitch(true)
+        setTimeout(() => setGlitch(false), 100)
+      }, 500)
+    }
 
     // Phase transitions with stored timer refs
     const breachTimer = setTimeout(() => setPhase('breach'), 2800)
@@ -195,7 +199,7 @@ function LoadingScreen({ onComplete }) {
     return () => {
       timers.forEach(timer => clearTimeout(timer))
       clearInterval(progressInterval)
-      clearInterval(glitchInterval)
+      if (glitchInterval) clearInterval(glitchInterval)
     }
   }, []) // Empty deps - run once on mount
 
@@ -214,8 +218,8 @@ function LoadingScreen({ onComplete }) {
       transition={{ duration: 0.3 }}
       className="fixed inset-0 bg-black z-[200] overflow-hidden font-mono"
     >
-      {/* Matrix rain background */}
-      <div className="absolute inset-0 opacity-20">
+      {/* Matrix rain background - hidden on mobile for performance */}
+      <div className="absolute inset-0 opacity-20 hidden md:block">
         {matrixChars.map((col) => (
           <motion.div
             key={col.id}
@@ -245,9 +249,9 @@ function LoadingScreen({ onComplete }) {
         }}
       />
 
-      {/* Glitch overlay */}
+      {/* Glitch overlay - desktop only */}
       <AnimatePresence>
-        {glitch && phase === 'hacking' && (
+        {glitch && phase === 'hacking' && !isMobile && (
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
@@ -2632,7 +2636,7 @@ function App() {
 
   return (
     <>
-      <AnimatePresence mode="wait">
+      <AnimatePresence>
         {loading && <LoadingScreen onComplete={() => setLoading(false)} />}
       </AnimatePresence>
 
@@ -2644,28 +2648,23 @@ function App() {
         {quizOpen && <FitnessQuiz isOpen={quizOpen} onClose={() => setQuizOpen(false)} />}
       </AnimatePresence>
 
-      {/* Main content - always mounted but hidden during loading */}
-      <motion.div
-        initial={{ opacity: 0 }}
-        animate={{ opacity: loading ? 0 : 1 }}
-        transition={{ duration: 0.5, delay: loading ? 0 : 0.3 }}
-        className="bg-black text-white min-h-screen cursor-none md:cursor-none"
-        style={{ visibility: loading ? 'hidden' : 'visible' }}
-      >
-        <CustomCursor />
-        <NoiseOverlay />
-        <MusicWidget />
-        <Navbar onShopNow={() => setCheckoutOpen(true)} />
-        <Hero />
-        <MarqueeSection />
-        <ProductSection />
-        <UnboxingSection />
-        <HorizontalFeatures />
-        <QuizCTA onStartQuiz={() => setQuizOpen(true)} />
-        <Testimonials />
-        <BuySection onCheckout={() => setCheckoutOpen(true)} />
-        <Footer />
-      </motion.div>
+      {!loading && (
+        <div className="bg-black text-white min-h-screen cursor-none md:cursor-none">
+          <CustomCursor />
+          <NoiseOverlay />
+          <MusicWidget />
+          <Navbar onShopNow={() => setCheckoutOpen(true)} />
+          <Hero />
+          <MarqueeSection />
+          <ProductSection />
+          <UnboxingSection />
+          <HorizontalFeatures />
+          <QuizCTA onStartQuiz={() => setQuizOpen(true)} />
+          <Testimonials />
+          <BuySection onCheckout={() => setCheckoutOpen(true)} />
+          <Footer />
+        </div>
+      )}
     </>
   )
 }
