@@ -220,7 +220,7 @@ function LoadingScreen({ onComplete }) {
       className="fixed inset-0 bg-black z-[200] overflow-hidden font-mono"
     >
       {/* Matrix rain background - hidden on mobile for performance */}
-      <div className="absolute inset-0 opacity-20 hidden md:block">
+      <div className="absolute inset-0 opacity-20 hidden md:block" translate="no">
         {matrixChars.map((col) => (
           <motion.div
             key={col.id}
