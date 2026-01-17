@@ -2208,39 +2208,32 @@ function MusicWidget() {
 
   return (
     <>
-      {/* Initial prompt to enable music */}
+      {/* Initial prompt to enable music - compact */}
       <AnimatePresence>
         {showPrompt && (
           <motion.div
-            initial={{ opacity: 0, y: 50 }}
+            initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: 50 }}
-            transition={{ delay: 2, duration: 0.5 }}
-            className="fixed bottom-6 left-6 z-[200] flex items-center gap-3 bg-black/80 backdrop-blur-xl border border-white/10 rounded-2xl p-4 shadow-2xl"
+            exit={{ opacity: 0, y: 30 }}
+            transition={{ delay: 2, duration: 0.4 }}
+            className="fixed bottom-4 left-4 z-[200] flex items-center gap-2 bg-black/90 backdrop-blur-xl border border-white/10 rounded-full pl-3 pr-2 py-2 shadow-xl"
           >
-            <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl flex items-center justify-center">
-              <svg className="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 24 24">
-                <path d="M12 3v10.55c-.59-.34-1.27-.55-2-.55-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4V7h4V3h-6z"/>
-              </svg>
-            </div>
-            <div className="flex-1">
-              <p className="text-white font-semibold text-sm">Enable Music?</p>
-              <p className="text-white/50 text-xs">Vibe while you browse</p>
-            </div>
-            <div className="flex gap-2">
-              <button
-                onClick={enableMusic}
-                className="px-4 py-2 bg-blue-500 hover:bg-blue-400 text-white text-sm font-bold rounded-lg transition-colors"
-              >
-                Yes
-              </button>
-              <button
-                onClick={dismissPrompt}
-                className="px-4 py-2 bg-white/10 hover:bg-white/20 text-white text-sm rounded-lg transition-colors"
-              >
-                No
-              </button>
-            </div>
+            <svg className="w-4 h-4 text-blue-400" fill="currentColor" viewBox="0 0 24 24">
+              <path d="M12 3v10.55c-.59-.34-1.27-.55-2-.55-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4V7h4V3h-6z"/>
+            </svg>
+            <span className="text-white/80 text-xs">Music?</span>
+            <button
+              onClick={enableMusic}
+              className="px-2.5 py-1 bg-blue-500 hover:bg-blue-400 text-white text-xs font-bold rounded-full transition-colors"
+            >
+              Yes
+            </button>
+            <button
+              onClick={dismissPrompt}
+              className="px-2.5 py-1 bg-white/10 hover:bg-white/20 text-white/60 text-xs rounded-full transition-colors"
+            >
+              No
+            </button>
           </motion.div>
         )}
       </AnimatePresence>
@@ -2250,17 +2243,17 @@ function MusicWidget() {
         <motion.div
           initial={{ opacity: 0, scale: 0.8 }}
           animate={{ opacity: 1, scale: 1 }}
-          className="fixed bottom-6 left-6 z-[200]"
+          className="fixed bottom-4 left-4 z-[200]"
         >
-          {/* Collapsed state - just a button */}
+          {/* Collapsed state - small button */}
           {!isExpanded && (
             <motion.button
               whileHover={{ scale: 1.1 }}
               whileTap={{ scale: 0.95 }}
               onClick={() => setIsExpanded(true)}
-              className="w-14 h-14 bg-gradient-to-br from-blue-500 to-blue-600 rounded-full flex items-center justify-center shadow-lg shadow-blue-500/30 border border-white/20"
+              className="w-10 h-10 bg-gradient-to-br from-blue-500 to-blue-600 rounded-full flex items-center justify-center shadow-lg shadow-blue-500/30 border border-white/20"
             >
-              <svg className="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 24 24">
+              <svg className="w-4 h-4 text-white" fill="currentColor" viewBox="0 0 24 24">
                 <path d="M12 3v10.55c-.59-.34-1.27-.55-2-.55-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4V7h4V3h-6z"/>
               </svg>
             </motion.button>
@@ -2270,37 +2263,32 @@ function MusicWidget() {
           <AnimatePresence>
             {isExpanded && (
               <motion.div
-                initial={{ opacity: 0, y: 20, scale: 0.9 }}
+                initial={{ opacity: 0, y: 10, scale: 0.95 }}
                 animate={{ opacity: 1, y: 0, scale: 1 }}
-                exit={{ opacity: 0, y: 20, scale: 0.9 }}
+                exit={{ opacity: 0, y: 10, scale: 0.95 }}
                 className="relative"
               >
                 {/* Close/minimize button */}
                 <button
                   onClick={() => setIsExpanded(false)}
-                  className="absolute -top-2 -right-2 w-8 h-8 bg-black border border-white/20 rounded-full flex items-center justify-center text-white/60 hover:text-white hover:bg-white/10 transition-colors z-10"
+                  className="absolute -top-1.5 -right-1.5 w-6 h-6 bg-black border border-white/20 rounded-full flex items-center justify-center text-white/60 hover:text-white hover:bg-white/10 transition-colors z-10"
                 >
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
                   </svg>
                 </button>
 
-                {/* Spotify embed */}
-                <div className="rounded-2xl overflow-hidden shadow-2xl shadow-black/50 border border-white/10">
+                {/* Spotify embed - compact */}
+                <div className="rounded-xl overflow-hidden shadow-2xl shadow-black/50 border border-white/10">
                   <iframe
                     src="https://open.spotify.com/embed/playlist/1JAcdeQxUvXEgHHVQpwRop?utm_source=generator&theme=0"
-                    width="320"
-                    height="152"
+                    width="250"
+                    height="80"
                     frameBorder="0"
                     allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"
                     loading="lazy"
-                    className="rounded-2xl"
+                    className="rounded-xl"
                   />
-                </div>
-
-                {/* Label */}
-                <div className="mt-2 text-center">
-                  <span className="text-white/40 text-xs">Powered by Spotify</span>
                 </div>
               </motion.div>
             )}
