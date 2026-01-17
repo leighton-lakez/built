@@ -156,10 +156,13 @@ function LoadingScreen({ onComplete }) {
 
   // Terminal typing effect
   useEffect(() => {
+    const timers = []
+
     hackingCommands.forEach(({ text, delay, color }) => {
-      setTimeout(() => {
+      const timer = setTimeout(() => {
         setTerminalLines(prev => [...prev, { text, color }])
       }, delay)
+      timers.push(timer)
     })
 
     // Progress bar
@@ -179,17 +182,22 @@ function LoadingScreen({ onComplete }) {
       setTimeout(() => setGlitch(false), 100)
     }, 500)
 
-    // Phase transitions
-    setTimeout(() => setPhase('breach'), 2800)
-    setTimeout(() => setPhase('access'), 3500)
-    setTimeout(() => setPhase('exit'), 4500)
-    setTimeout(onComplete, 5200)
+    // Phase transitions with stored timer refs
+    const breachTimer = setTimeout(() => setPhase('breach'), 2800)
+    const accessTimer = setTimeout(() => setPhase('access'), 3500)
+    const exitTimer = setTimeout(() => setPhase('exit'), 4500)
+    const completeTimer = setTimeout(() => {
+      if (onComplete) onComplete()
+    }, 5200)
+
+    timers.push(breachTimer, accessTimer, exitTimer, completeTimer)
 
     return () => {
+      timers.forEach(timer => clearTimeout(timer))
       clearInterval(progressInterval)
       clearInterval(glitchInterval)
     }
-  }, [hackingCommands, onComplete])
+  }, []) // Empty deps - run once on mount
 
   // Random hex strings
   const hexStrings = useMemo(() =>
@@ -2624,7 +2632,7 @@ function App() {
 
   return (
     <>
-      <AnimatePresence>
+      <AnimatePresence mode="wait">
         {loading && <LoadingScreen onComplete={() => setLoading(false)} />}
       </AnimatePresence>
 
@@ -2636,23 +2644,28 @@ function App() {
         {quizOpen && <FitnessQuiz isOpen={quizOpen} onClose={() => setQuizOpen(false)} />}
       </AnimatePresence>
 
-      {!loading && (
-        <div className="bg-black text-white min-h-screen cursor-none md:cursor-none">
-          <CustomCursor />
-          <NoiseOverlay />
-          <MusicWidget />
-          <Navbar onShopNow={() => setCheckoutOpen(true)} />
-          <Hero />
-          <MarqueeSection />
-          <ProductSection />
-          <UnboxingSection />
-          <HorizontalFeatures />
-          <QuizCTA onStartQuiz={() => setQuizOpen(true)} />
-          <Testimonials />
-          <BuySection onCheckout={() => setCheckoutOpen(true)} />
-          <Footer />
-        </div>
-      )}
+      {/* Main content - always mounted but hidden during loading */}
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: loading ? 0 : 1 }}
+        transition={{ duration: 0.5, delay: loading ? 0 : 0.3 }}
+        className="bg-black text-white min-h-screen cursor-none md:cursor-none"
+        style={{ visibility: loading ? 'hidden' : 'visible' }}
+      >
+        <CustomCursor />
+        <NoiseOverlay />
+        <MusicWidget />
+        <Navbar onShopNow={() => setCheckoutOpen(true)} />
+        <Hero />
+        <MarqueeSection />
+        <ProductSection />
+        <UnboxingSection />
+        <HorizontalFeatures />
+        <QuizCTA onStartQuiz={() => setQuizOpen(true)} />
+        <Testimonials />
+        <BuySection onCheckout={() => setCheckoutOpen(true)} />
+        <Footer />
+      </motion.div>
     </>
   )
 }
