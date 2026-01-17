@@ -214,8 +214,9 @@ function LoadingScreen({ onComplete }) {
 
   return (
     <motion.div
-      exit={{ opacity: 0 }}
-      transition={{ duration: 0.3 }}
+      initial={{ opacity: 1 }}
+      exit={{ opacity: 0, pointerEvents: 'none' }}
+      transition={{ duration: 0.5 }}
       className="fixed inset-0 bg-black z-[200] overflow-hidden font-mono"
     >
       {/* Matrix rain background - hidden on mobile for performance */}
@@ -2636,8 +2637,8 @@ function App() {
 
   return (
     <>
-      <AnimatePresence>
-        {loading && <LoadingScreen onComplete={() => setLoading(false)} />}
+      <AnimatePresence mode="wait" onExitComplete={() => console.log('Loading screen exited')}>
+        {loading && <LoadingScreen key="loading" onComplete={() => setLoading(false)} />}
       </AnimatePresence>
 
       <AnimatePresence>
@@ -2648,23 +2649,27 @@ function App() {
         {quizOpen && <FitnessQuiz isOpen={quizOpen} onClose={() => setQuizOpen(false)} />}
       </AnimatePresence>
 
-      {!loading && (
-        <div className="bg-black text-white min-h-screen cursor-none md:cursor-none">
-          <CustomCursor />
-          <NoiseOverlay />
-          <MusicWidget />
-          <Navbar onShopNow={() => setCheckoutOpen(true)} />
-          <Hero />
-          <MarqueeSection />
-          <ProductSection />
-          <UnboxingSection />
-          <HorizontalFeatures />
-          <QuizCTA onStartQuiz={() => setQuizOpen(true)} />
-          <Testimonials />
-          <BuySection onCheckout={() => setCheckoutOpen(true)} />
-          <Footer />
-        </div>
-      )}
+      <div
+        className={`bg-black text-white min-h-screen cursor-none md:cursor-none ${loading ? 'hidden' : 'block'}`}
+      >
+        {!loading && (
+          <>
+            <CustomCursor />
+            <NoiseOverlay />
+            <MusicWidget />
+            <Navbar onShopNow={() => setCheckoutOpen(true)} />
+            <Hero />
+            <MarqueeSection />
+            <ProductSection />
+            <UnboxingSection />
+            <HorizontalFeatures />
+            <QuizCTA onStartQuiz={() => setQuizOpen(true)} />
+            <Testimonials />
+            <BuySection onCheckout={() => setCheckoutOpen(true)} />
+            <Footer />
+          </>
+        )}
+      </div>
     </>
   )
 }
