@@ -361,71 +361,122 @@ function LoadingScreen({ onComplete }) {
         </motion.div>
       </div>
 
-      {/* ACCESS GRANTED overlay */}
+      {/* ACCESS GRANTED overlay - Modern/Futuristic */}
       <AnimatePresence>
         {(phase === 'access' || phase === 'exit') && (
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="absolute inset-0 flex items-center justify-center bg-black/90 z-50"
+            className="absolute inset-0 flex items-center justify-center bg-black z-50"
           >
+            {/* Horizontal scan lines that wipe across */}
             <motion.div
-              initial={{ scale: 0.5, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              transition={{ type: 'spring', damping: 15 }}
-              className="text-center"
+              className="absolute inset-0 overflow-hidden"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
             >
+              {[...Array(5)].map((_, i) => (
+                <motion.div
+                  key={i}
+                  className="absolute left-0 right-0 h-px bg-gradient-to-r from-transparent via-blue-400 to-transparent"
+                  style={{ top: `${20 + i * 15}%` }}
+                  initial={{ scaleX: 0, opacity: 0 }}
+                  animate={{ scaleX: 1, opacity: [0, 1, 0] }}
+                  transition={{ delay: i * 0.1, duration: 0.8 }}
+                />
+              ))}
+            </motion.div>
+
+            {/* Center content */}
+            <div className="relative z-10 text-center">
+              {/* ACCESS GRANTED text with glitch */}
               <motion.div
-                className="text-green-500 text-2xl md:text-4xl font-bold mb-4 tracking-wider"
-                animate={{ opacity: [1, 0.5, 1] }}
-                transition={{ duration: 0.5, repeat: 3 }}
+                initial={{ opacity: 0, y: -20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.3 }}
+                className="mb-8"
               >
-                ACCESS GRANTED
+                <motion.span
+                  className="text-sm md:text-base font-mono tracking-[0.5em] text-blue-400"
+                  animate={{ opacity: [1, 0.5, 1] }}
+                  transition={{ duration: 0.2, repeat: 2 }}
+                >
+                  [ ACCESS GRANTED ]
+                </motion.span>
               </motion.div>
 
+              {/* BUILT logo - clean and modern */}
               <motion.div
-                initial={{ scale: 0, opacity: 0 }}
-                animate={{ scale: 1, opacity: 1 }}
-                transition={{ delay: 0.5, type: 'spring', damping: 12 }}
+                initial={{ opacity: 0, scale: 0.9 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ delay: 0.2, duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
                 className="relative"
               >
-                {/* Glowing ring */}
-                <motion.div
-                  className="absolute inset-0 flex items-center justify-center"
-                  animate={{ rotate: 360 }}
-                  transition={{ duration: 3, repeat: Infinity, ease: 'linear' }}
-                >
-                  <div className="w-48 h-48 md:w-64 md:h-64 rounded-full border-2 border-dashed border-blue-500/50" />
-                </motion.div>
+                {/* Glow behind text */}
+                <div className="absolute inset-0 flex items-center justify-center">
+                  <div className="w-64 h-32 bg-blue-500/20 blur-3xl" />
+                </div>
 
-                {/* BUILT logo */}
+                {/* Main BUILT text */}
                 <motion.h1
-                  className="text-6xl md:text-8xl font-black py-16"
+                  className="relative text-7xl md:text-9xl font-black tracking-tight"
                   style={{
-                    background: 'linear-gradient(135deg, #3b82f6 0%, #60a5fa 50%, #22c55e 100%)',
+                    background: 'linear-gradient(135deg, #3b82f6 0%, #60a5fa 50%, #93c5fd 100%)',
                     WebkitBackgroundClip: 'text',
                     WebkitTextFillColor: 'transparent',
                   }}
                   animate={phase === 'exit' ? {
-                    scale: [1, 1.5, 50],
+                    scale: [1, 1.1, 1.5],
                     opacity: [1, 1, 0],
+                    filter: ['blur(0px)', 'blur(0px)', 'blur(10px)'],
                   } : {}}
-                  transition={{ duration: 0.8, ease: [0.76, 0, 0.24, 1] }}
+                  transition={{ duration: 0.6, ease: [0.76, 0, 0.24, 1] }}
                 >
                   BUILT
                 </motion.h1>
               </motion.div>
 
-              <motion.p
+              {/* Tagline */}
+              <motion.div
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.8 }}
-                className="text-green-500/60 text-sm tracking-[0.3em] uppercase"
+                transition={{ delay: 0.5, duration: 0.4 }}
+                className="mt-6"
               >
-                Welcome to the system
-              </motion.p>
-            </motion.div>
+                <span className="text-white/40 text-xs md:text-sm tracking-[0.3em] uppercase">
+                  Creatine Gummies
+                </span>
+              </motion.div>
+
+              {/* Decorative lines */}
+              <div className="flex items-center justify-center gap-4 mt-8">
+                <motion.div
+                  className="h-px bg-gradient-to-r from-transparent to-blue-400"
+                  initial={{ width: 0 }}
+                  animate={{ width: 60 }}
+                  transition={{ delay: 0.6, duration: 0.4 }}
+                />
+                <motion.div
+                  className="w-2 h-2 bg-blue-400"
+                  initial={{ scale: 0 }}
+                  animate={{ scale: 1 }}
+                  transition={{ delay: 0.7 }}
+                />
+                <motion.div
+                  className="h-px bg-gradient-to-l from-transparent to-blue-400"
+                  initial={{ width: 0 }}
+                  animate={{ width: 60 }}
+                  transition={{ delay: 0.6, duration: 0.4 }}
+                />
+              </div>
+            </div>
+
+            {/* Corner brackets */}
+            <div className="absolute top-12 left-12 w-12 h-12 border-l-2 border-t-2 border-blue-400/50" />
+            <div className="absolute top-12 right-12 w-12 h-12 border-r-2 border-t-2 border-blue-400/50" />
+            <div className="absolute bottom-12 left-12 w-12 h-12 border-l-2 border-b-2 border-blue-400/50" />
+            <div className="absolute bottom-12 right-12 w-12 h-12 border-r-2 border-b-2 border-blue-400/50" />
           </motion.div>
         )}
       </AnimatePresence>
