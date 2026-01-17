@@ -215,8 +215,8 @@ function LoadingScreen({ onComplete }) {
   return (
     <motion.div
       initial={{ opacity: 1 }}
-      exit={{ opacity: 0, pointerEvents: 'none' }}
-      transition={{ duration: 0.5 }}
+      exit={{ opacity: 0 }}
+      transition={{ duration: 0.3 }}
       className="fixed inset-0 bg-black z-[200] overflow-hidden font-mono"
     >
       {/* Matrix rain background - hidden on mobile for performance */}
@@ -2683,12 +2683,13 @@ function MusicWidget() {
 // Main App
 function App() {
   const [loading, setLoading] = useState(true)
+  const [showContent, setShowContent] = useState(false)
   const [checkoutOpen, setCheckoutOpen] = useState(false)
   const [quizOpen, setQuizOpen] = useState(false)
 
   return (
     <>
-      <AnimatePresence mode="wait" onExitComplete={() => console.log('Loading screen exited')}>
+      <AnimatePresence mode="wait" onExitComplete={() => setShowContent(true)}>
         {loading && <LoadingScreen key="loading" onComplete={() => setLoading(false)} />}
       </AnimatePresence>
 
@@ -2700,27 +2701,23 @@ function App() {
         {quizOpen && <FitnessQuiz isOpen={quizOpen} onClose={() => setQuizOpen(false)} />}
       </AnimatePresence>
 
-      <div
-        className={`bg-black text-white min-h-screen cursor-none md:cursor-none ${loading ? 'hidden' : 'block'}`}
-      >
-        {!loading && (
-          <>
-            <CustomCursor />
-            <NoiseOverlay />
-            <MusicWidget />
-            <Navbar onShopNow={() => setCheckoutOpen(true)} />
-            <Hero />
-            <MarqueeSection />
-            <ProductSection />
-            <UnboxingSection />
-            <HorizontalFeatures />
-            <QuizCTA onStartQuiz={() => setQuizOpen(true)} />
-            <Testimonials />
-            <BuySection onCheckout={() => setCheckoutOpen(true)} />
-            <Footer />
-          </>
-        )}
-      </div>
+      {showContent && (
+        <div className="bg-black text-white min-h-screen cursor-none md:cursor-none">
+          <CustomCursor />
+          <NoiseOverlay />
+          <MusicWidget />
+          <Navbar onShopNow={() => setCheckoutOpen(true)} />
+          <Hero />
+          <MarqueeSection />
+          <ProductSection />
+          <UnboxingSection />
+          <HorizontalFeatures />
+          <QuizCTA onStartQuiz={() => setQuizOpen(true)} />
+          <Testimonials />
+          <BuySection onCheckout={() => setCheckoutOpen(true)} />
+          <Footer />
+        </div>
+      )}
     </>
   )
 }
