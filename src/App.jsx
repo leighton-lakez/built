@@ -668,7 +668,9 @@ function Hero() {
               transition={{ duration: 0.8, ease: [0.25, 0.1, 0.25, 1], delay: 0.1 }}
               className="text-[15vw] md:text-[12vw] font-black leading-none tracking-tighter text-center"
             >
-              <span className="gradient-text">BUILT</span>
+              <GlitchText>
+                <span className="gradient-text glow-text">BUILT</span>
+              </GlitchText>
             </motion.h1>
           </div>
 
