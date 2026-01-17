@@ -124,197 +124,312 @@ function GlitchText({ children, className = '' }) {
 
 // Loading Screen
 function LoadingScreen({ onComplete }) {
-  const [count, setCount] = useState(0)
-  const [phase, setPhase] = useState('counting') // counting, reveal, exit
+  const [phase, setPhase] = useState('hacking') // hacking, breach, access, exit
+  const [terminalLines, setTerminalLines] = useState([])
+  const [progress, setProgress] = useState(0)
+  const [glitch, setGlitch] = useState(false)
 
+  // Matrix rain characters
+  const matrixChars = useMemo(() =>
+    [...Array(50)].map((_, i) => ({
+      id: i,
+      x: Math.random() * 100,
+      delay: Math.random() * 2,
+      duration: Math.random() * 2 + 1,
+      chars: Array(20).fill(0).map(() =>
+        String.fromCharCode(0x30A0 + Math.random() * 96)
+      ).join('')
+    })), []
+  )
+
+  // Fake terminal commands
+  const hackingCommands = useMemo(() => [
+    { text: '> Initializing secure connection...', delay: 0 },
+    { text: '> Bypassing firewall [████████░░] 80%', delay: 400 },
+    { text: '> Decrypting access protocols...', delay: 800 },
+    { text: '> Injecting payload: BUILT.exe', delay: 1200 },
+    { text: '> Accessing mainframe...', delay: 1600 },
+    { text: '> BREACH DETECTED', delay: 2000, color: 'text-red-500' },
+    { text: '> Overriding security [██████████] 100%', delay: 2400 },
+    { text: '> ACCESS GRANTED', delay: 2800, color: 'text-green-500' },
+  ], [])
+
+  // Terminal typing effect
   useEffect(() => {
-    if (phase === 'counting') {
-      const interval = setInterval(() => {
-        setCount(prev => {
-          if (prev >= 100) {
-            clearInterval(interval)
-            setPhase('reveal')
-            setTimeout(() => setPhase('exit'), 1000)
-            setTimeout(onComplete, 1800)
-            return 100
-          }
-          return prev + 1
-        })
-      }, 20)
-      return () => clearInterval(interval)
+    hackingCommands.forEach(({ text, delay, color }) => {
+      setTimeout(() => {
+        setTerminalLines(prev => [...prev, { text, color }])
+      }, delay)
+    })
+
+    // Progress bar
+    const progressInterval = setInterval(() => {
+      setProgress(prev => {
+        if (prev >= 100) {
+          clearInterval(progressInterval)
+          return 100
+        }
+        return prev + 2
+      })
+    }, 60)
+
+    // Glitch effects
+    const glitchInterval = setInterval(() => {
+      setGlitch(true)
+      setTimeout(() => setGlitch(false), 100)
+    }, 500)
+
+    // Phase transitions
+    setTimeout(() => setPhase('breach'), 2800)
+    setTimeout(() => setPhase('access'), 3500)
+    setTimeout(() => setPhase('exit'), 4500)
+    setTimeout(onComplete, 5200)
+
+    return () => {
+      clearInterval(progressInterval)
+      clearInterval(glitchInterval)
     }
-  }, [phase, onComplete])
+  }, [hackingCommands, onComplete])
+
+  // Random hex strings
+  const hexStrings = useMemo(() =>
+    [...Array(8)].map(() =>
+      Array(8).fill(0).map(() =>
+        Math.floor(Math.random() * 16).toString(16).toUpperCase()
+      ).join('')
+    ), []
+  )
 
   return (
     <motion.div
       exit={{ opacity: 0 }}
-      transition={{ duration: 0.6, ease: 'easeInOut' }}
-      className="fixed inset-0 bg-black z-[200] overflow-hidden"
+      transition={{ duration: 0.3 }}
+      className="fixed inset-0 bg-black z-[200] overflow-hidden font-mono"
     >
-      {/* Split screen panels that slide away */}
-      <motion.div
-        className="absolute inset-0 flex"
-        animate={phase === 'exit' ? { opacity: 0 } : {}}
-        transition={{ duration: 0.5 }}
-      >
-        {/* Left panel */}
-        <motion.div
-          className="w-1/2 h-full bg-black border-r border-white/5 flex items-center justify-end pr-4 md:pr-8"
-          animate={phase === 'exit' ? { x: '-100%' } : {}}
-          transition={{ duration: 0.8, ease: [0.76, 0, 0.24, 1] }}
-        >
-          <motion.span
-            className="text-[20vw] md:text-[15vw] font-black text-white/5 select-none"
-            animate={phase === 'reveal' ? { opacity: 0, x: -50 } : {}}
-          >
-            BUI
-          </motion.span>
-        </motion.div>
-
-        {/* Right panel */}
-        <motion.div
-          className="w-1/2 h-full bg-black border-l border-white/5 flex items-center justify-start pl-4 md:pl-8"
-          animate={phase === 'exit' ? { x: '100%' } : {}}
-          transition={{ duration: 0.8, ease: [0.76, 0, 0.24, 1] }}
-        >
-          <motion.span
-            className="text-[20vw] md:text-[15vw] font-black text-white/5 select-none"
-            animate={phase === 'reveal' ? { opacity: 0, x: 50 } : {}}
-          >
-            LT
-          </motion.span>
-        </motion.div>
-      </motion.div>
-
-      {/* Center content */}
-      <div className="absolute inset-0 flex flex-col items-center justify-center">
-        {/* Giant counter */}
-        <div className="relative">
+      {/* Matrix rain background */}
+      <div className="absolute inset-0 opacity-20">
+        {matrixChars.map((col) => (
           <motion.div
-            className="text-[30vw] md:text-[20vw] font-black leading-none tabular-nums"
-            style={{
-              background: 'linear-gradient(180deg, #3b82f6 0%, #1d4ed8 100%)',
-              WebkitBackgroundClip: 'text',
-              WebkitTextFillColor: 'transparent',
+            key={col.id}
+            className="absolute text-green-500 text-xs whitespace-pre leading-4"
+            style={{ left: `${col.x}%` }}
+            initial={{ y: '-100%' }}
+            animate={{ y: '100vh' }}
+            transition={{
+              duration: col.duration,
+              delay: col.delay,
+              repeat: Infinity,
+              ease: 'linear'
             }}
-            animate={phase === 'reveal' ? {
-              scale: [1, 1.2, 40],
-              opacity: [1, 1, 0]
-            } : {}}
-            transition={{ duration: 1, ease: [0.76, 0, 0.24, 1] }}
           >
-            {count.toString().padStart(3, '0')}
+            {col.chars.split('').map((char, i) => (
+              <div key={i} style={{ opacity: 1 - i * 0.05 }}>{char}</div>
+            ))}
           </motion.div>
+        ))}
+      </div>
 
-          {/* Reflection effect */}
+      {/* Scan lines */}
+      <div
+        className="absolute inset-0 pointer-events-none opacity-10"
+        style={{
+          backgroundImage: 'repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0,255,0,0.03) 2px, rgba(0,255,0,0.03) 4px)',
+        }}
+      />
+
+      {/* Glitch overlay */}
+      <AnimatePresence>
+        {glitch && phase === 'hacking' && (
           <motion.div
-            className="absolute top-full left-0 right-0 text-[30vw] md:text-[20vw] font-black leading-none tabular-nums opacity-10"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="absolute inset-0 z-50"
             style={{
-              background: 'linear-gradient(180deg, #3b82f6 0%, transparent 100%)',
-              WebkitBackgroundClip: 'text',
-              WebkitTextFillColor: 'transparent',
-              transform: 'scaleY(-1)',
-              maskImage: 'linear-gradient(to bottom, white, transparent)',
-              WebkitMaskImage: 'linear-gradient(to bottom, white, transparent)',
+              background: 'repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0,255,0,0.1) 2px, rgba(0,255,0,0.1) 4px)',
+              transform: `translateX(${Math.random() * 10 - 5}px)`,
             }}
-            animate={phase === 'reveal' ? { opacity: 0 } : {}}
-          >
-            {count.toString().padStart(3, '0')}
-          </motion.div>
-        </div>
+          />
+        )}
+      </AnimatePresence>
 
-        {/* Progress line */}
+      {/* Hex decoration - corners */}
+      <div className="absolute top-4 left-4 text-green-500/30 text-[10px] leading-tight">
+        {hexStrings.slice(0, 4).map((hex, i) => (
+          <div key={i}>{hex}</div>
+        ))}
+      </div>
+      <div className="absolute top-4 right-4 text-green-500/30 text-[10px] leading-tight text-right">
+        {hexStrings.slice(4).map((hex, i) => (
+          <div key={i}>{hex}</div>
+        ))}
+      </div>
+
+      {/* Main terminal window */}
+      <div className="absolute inset-0 flex items-center justify-center p-4">
         <motion.div
-          className="absolute bottom-1/3 left-1/2 -translate-x-1/2 w-32 md:w-48"
-          animate={phase === 'reveal' ? { opacity: 0, y: 20 } : {}}
+          className="w-full max-w-2xl"
+          animate={phase === 'breach' ? {
+            scale: [1, 1.02, 1],
+            x: [0, -5, 5, -5, 0],
+          } : {}}
+          transition={{ duration: 0.3 }}
         >
-          <div className="h-px bg-white/20 w-full">
-            <motion.div
-              className="h-full bg-blue-400"
-              style={{ width: `${count}%` }}
-            />
+          {/* Terminal header */}
+          <div className="bg-green-500/20 border border-green-500/50 rounded-t-lg px-4 py-2 flex items-center gap-2">
+            <div className="w-3 h-3 rounded-full bg-red-500" />
+            <div className="w-3 h-3 rounded-full bg-yellow-500" />
+            <div className="w-3 h-3 rounded-full bg-green-500" />
+            <span className="ml-4 text-green-500 text-sm">BUILT_TERMINAL v2.0</span>
+            <span className="ml-auto text-green-500/50 text-xs">
+              {new Date().toLocaleTimeString()}
+            </span>
+          </div>
+
+          {/* Terminal body */}
+          <div className="bg-black/80 border-x border-b border-green-500/50 rounded-b-lg p-4 min-h-[300px]">
+            {/* Terminal lines */}
+            <div className="space-y-1 mb-4">
+              {terminalLines.map((line, i) => (
+                <motion.div
+                  key={i}
+                  initial={{ opacity: 0, x: -10 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  className={`text-sm ${line.color || 'text-green-500'}`}
+                >
+                  {line.text}
+                </motion.div>
+              ))}
+              {phase === 'hacking' && (
+                <motion.span
+                  className="inline-block w-2 h-4 bg-green-500"
+                  animate={{ opacity: [1, 0] }}
+                  transition={{ duration: 0.5, repeat: Infinity }}
+                />
+              )}
+            </div>
+
+            {/* Progress section */}
+            <div className="mt-6 space-y-2">
+              <div className="flex justify-between text-xs text-green-500/70">
+                <span>SYSTEM BREACH PROGRESS</span>
+                <span>{Math.min(progress, 100)}%</span>
+              </div>
+              <div className="h-2 bg-green-500/20 rounded-full overflow-hidden">
+                <motion.div
+                  className="h-full bg-gradient-to-r from-green-500 to-blue-500"
+                  style={{ width: `${progress}%` }}
+                />
+              </div>
+            </div>
+
+            {/* Status indicators */}
+            <div className="mt-6 grid grid-cols-3 gap-4 text-xs">
+              <div className="text-center">
+                <div className={`text-2xl mb-1 ${progress > 30 ? 'text-green-500' : 'text-green-500/30'}`}>
+                  {progress > 30 ? '✓' : '○'}
+                </div>
+                <div className="text-green-500/50">FIREWALL</div>
+              </div>
+              <div className="text-center">
+                <div className={`text-2xl mb-1 ${progress > 60 ? 'text-green-500' : 'text-green-500/30'}`}>
+                  {progress > 60 ? '✓' : '○'}
+                </div>
+                <div className="text-green-500/50">ENCRYPTION</div>
+              </div>
+              <div className="text-center">
+                <div className={`text-2xl mb-1 ${progress >= 100 ? 'text-green-500' : 'text-green-500/30'}`}>
+                  {progress >= 100 ? '✓' : '○'}
+                </div>
+                <div className="text-green-500/50">ACCESS</div>
+              </div>
+            </div>
           </div>
         </motion.div>
+      </div>
 
-        {/* Brand name that appears */}
-        <motion.div
-          className="absolute inset-0 flex items-center justify-center pointer-events-none"
-          initial={{ opacity: 0, scale: 0.8 }}
-          animate={phase === 'reveal' ? { opacity: 1, scale: 1 } : {}}
-          transition={{ delay: 0.3, duration: 0.5 }}
-        >
-          <motion.h1
-            className="text-6xl md:text-8xl font-black tracking-tight"
-            animate={phase === 'exit' ? {
-              scale: 1.5,
-              opacity: 0
-            } : {}}
-            transition={{ duration: 0.5 }}
+      {/* ACCESS GRANTED overlay */}
+      <AnimatePresence>
+        {(phase === 'access' || phase === 'exit') && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="absolute inset-0 flex items-center justify-center bg-black/90 z-50"
           >
-            <span className="gradient-text">BUILT</span>
-          </motion.h1>
-        </motion.div>
-      </div>
+            <motion.div
+              initial={{ scale: 0.5, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              transition={{ type: 'spring', damping: 15 }}
+              className="text-center"
+            >
+              <motion.div
+                className="text-green-500 text-2xl md:text-4xl font-bold mb-4 tracking-wider"
+                animate={{ opacity: [1, 0.5, 1] }}
+                transition={{ duration: 0.5, repeat: 3 }}
+              >
+                ACCESS GRANTED
+              </motion.div>
 
-      {/* Horizontal lines decoration */}
-      <div className="absolute top-1/4 left-0 right-0 flex flex-col gap-px opacity-20">
-        {[...Array(3)].map((_, i) => (
-          <motion.div
-            key={i}
-            className="h-px bg-white"
-            initial={{ scaleX: 0 }}
-            animate={{ scaleX: 1 }}
-            transition={{ delay: i * 0.1, duration: 0.8 }}
-            style={{ transformOrigin: 'left' }}
-          />
-        ))}
-      </div>
-      <div className="absolute bottom-1/4 left-0 right-0 flex flex-col gap-px opacity-20">
-        {[...Array(3)].map((_, i) => (
-          <motion.div
-            key={i}
-            className="h-px bg-white"
-            initial={{ scaleX: 0 }}
-            animate={{ scaleX: 1 }}
-            transition={{ delay: i * 0.1, duration: 0.8 }}
-            style={{ transformOrigin: 'right' }}
-          />
-        ))}
-      </div>
+              <motion.div
+                initial={{ scale: 0, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                transition={{ delay: 0.5, type: 'spring', damping: 12 }}
+                className="relative"
+              >
+                {/* Glowing ring */}
+                <motion.div
+                  className="absolute inset-0 flex items-center justify-center"
+                  animate={{ rotate: 360 }}
+                  transition={{ duration: 3, repeat: Infinity, ease: 'linear' }}
+                >
+                  <div className="w-48 h-48 md:w-64 md:h-64 rounded-full border-2 border-dashed border-blue-500/50" />
+                </motion.div>
 
-      {/* Corner text */}
-      <motion.div
-        className="absolute top-8 left-8 text-white/30 text-xs font-mono"
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ delay: 0.5 }}
-      >
-        LOADING
-      </motion.div>
-      <motion.div
-        className="absolute top-8 right-8 text-white/30 text-xs font-mono"
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ delay: 0.5 }}
-      >
-        {count >= 100 ? 'READY' : 'PLEASE WAIT'}
-      </motion.div>
-      <motion.div
-        className="absolute bottom-8 left-8 text-white/30 text-xs font-mono"
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ delay: 0.5 }}
-      >
-        CREATINE GUMMIES
-      </motion.div>
-      <motion.div
-        className="absolute bottom-8 right-8 text-white/30 text-xs font-mono"
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ delay: 0.5 }}
-      >
-        © 2025
-      </motion.div>
+                {/* BUILT logo */}
+                <motion.h1
+                  className="text-6xl md:text-8xl font-black py-16"
+                  style={{
+                    background: 'linear-gradient(135deg, #3b82f6 0%, #60a5fa 50%, #22c55e 100%)',
+                    WebkitBackgroundClip: 'text',
+                    WebkitTextFillColor: 'transparent',
+                  }}
+                  animate={phase === 'exit' ? {
+                    scale: [1, 1.5, 50],
+                    opacity: [1, 1, 0],
+                  } : {}}
+                  transition={{ duration: 0.8, ease: [0.76, 0, 0.24, 1] }}
+                >
+                  BUILT
+                </motion.h1>
+              </motion.div>
+
+              <motion.p
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.8 }}
+                className="text-green-500/60 text-sm tracking-[0.3em] uppercase"
+              >
+                Welcome to the system
+              </motion.p>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Bottom status bar */}
+      <div className="absolute bottom-0 left-0 right-0 border-t border-green-500/30 bg-black/50 px-4 py-2 flex justify-between text-xs text-green-500/50">
+        <span>SYS:ACTIVE</span>
+        <span>PROTOCOL:BUILT-X9</span>
+        <span>NODE:ALPHA-7</span>
+        <span className="hidden md:block">CIPHER:AES-256</span>
+        <motion.span
+          animate={{ opacity: [1, 0.3, 1] }}
+          transition={{ duration: 1, repeat: Infinity }}
+        >
+          ● LIVE
+        </motion.span>
+      </div>
     </motion.div>
   )
 }
