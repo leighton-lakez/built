@@ -125,53 +125,256 @@ function GlitchText({ children, className = '' }) {
 // Loading Screen
 function LoadingScreen({ onComplete }) {
   const [progress, setProgress] = useState(0)
+  const [phase, setPhase] = useState(0) // 0: loading, 1: reveal, 2: exit
 
   useEffect(() => {
     const interval = setInterval(() => {
       setProgress(prev => {
         if (prev >= 100) {
           clearInterval(interval)
-          setTimeout(onComplete, 500)
+          setPhase(1)
+          setTimeout(() => setPhase(2), 800)
+          setTimeout(onComplete, 1500)
           return 100
         }
-        return prev + Math.random() * 15
+        return prev + Math.random() * 12
       })
-    }, 100)
+    }, 80)
     return () => clearInterval(interval)
   }, [onComplete])
 
+  // Floating particles
+  const particles = useMemo(() =>
+    [...Array(30)].map((_, i) => ({
+      id: i,
+      x: Math.random() * 100,
+      y: Math.random() * 100,
+      size: Math.random() * 4 + 2,
+      duration: Math.random() * 3 + 2,
+      delay: Math.random() * 2,
+    })), []
+  )
+
   return (
     <motion.div
-      exit={{ opacity: 0, scale: 1.1 }}
-      transition={{ duration: 0.8, ease: [0.76, 0, 0.24, 1] }}
-      className="fixed inset-0 bg-black z-[200] flex flex-col items-center justify-center"
+      exit={{ opacity: 0 }}
+      transition={{ duration: 0.5 }}
+      className="fixed inset-0 bg-black z-[200] flex flex-col items-center justify-center overflow-hidden"
     >
-      <motion.div
-        initial={{ scale: 0.5, opacity: 0 }}
-        animate={{ scale: 1, opacity: 1 }}
-        transition={{ duration: 0.5 }}
-        className="text-6xl md:text-8xl font-black tracking-tighter mb-8"
-      >
-        <GlitchText>
-          <span className="gradient-text">BUILT</span>
-        </GlitchText>
-      </motion.div>
-
-      <div className="w-64 h-1 bg-white/10 rounded-full overflow-hidden">
+      {/* Animated grid background */}
+      <div className="absolute inset-0 opacity-20">
+        <div className="absolute inset-0" style={{
+          backgroundImage: `linear-gradient(rgba(59, 130, 246, 0.3) 1px, transparent 1px),
+                           linear-gradient(90deg, rgba(59, 130, 246, 0.3) 1px, transparent 1px)`,
+          backgroundSize: '50px 50px',
+        }} />
         <motion.div
-          className="h-full bg-gradient-to-r from-blue-400 to-blue-600"
-          initial={{ width: 0 }}
-          animate={{ width: `${Math.min(progress, 100)}%` }}
+          className="absolute inset-0"
+          style={{
+            backgroundImage: `linear-gradient(rgba(59, 130, 246, 0.5) 1px, transparent 1px),
+                             linear-gradient(90deg, rgba(59, 130, 246, 0.5) 1px, transparent 1px)`,
+            backgroundSize: '50px 50px',
+          }}
+          animate={{
+            opacity: [0.1, 0.3, 0.1],
+            scale: [1, 1.02, 1]
+          }}
+          transition={{ duration: 2, repeat: Infinity }}
         />
       </div>
 
-      <motion.p
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        className="mt-4 text-blue-400 font-mono text-sm"
-      >
-        {Math.min(Math.round(progress), 100)}%
-      </motion.p>
+      {/* Floating particles */}
+      {particles.map((particle) => (
+        <motion.div
+          key={particle.id}
+          className="absolute rounded-full bg-blue-400"
+          style={{
+            width: particle.size,
+            height: particle.size,
+            left: `${particle.x}%`,
+            top: `${particle.y}%`,
+            filter: 'blur(1px)',
+          }}
+          animate={{
+            y: [0, -30, 0],
+            opacity: [0.2, 0.8, 0.2],
+            scale: [1, 1.5, 1],
+          }}
+          transition={{
+            duration: particle.duration,
+            delay: particle.delay,
+            repeat: Infinity,
+            ease: 'easeInOut',
+          }}
+        />
+      ))}
+
+      {/* Central energy orb */}
+      <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+        <motion.div
+          className="w-64 h-64 md:w-96 md:h-96 rounded-full"
+          style={{
+            background: 'radial-gradient(circle, rgba(59, 130, 246, 0.3) 0%, transparent 70%)',
+          }}
+          animate={{
+            scale: [1, 1.2, 1],
+            opacity: [0.5, 0.8, 0.5],
+          }}
+          transition={{ duration: 2, repeat: Infinity }}
+        />
+      </div>
+
+      {/* Pulsing rings */}
+      {[...Array(3)].map((_, i) => (
+        <motion.div
+          key={i}
+          className="absolute rounded-full border border-blue-400/30"
+          style={{
+            width: 150 + i * 80,
+            height: 150 + i * 80,
+          }}
+          initial={{ scale: 0.8, opacity: 0 }}
+          animate={{
+            scale: [0.8, 1.2, 0.8],
+            opacity: [0, 0.5, 0],
+            rotate: [0, 180, 360],
+          }}
+          transition={{
+            duration: 3,
+            delay: i * 0.4,
+            repeat: Infinity,
+            ease: 'easeInOut',
+          }}
+        />
+      ))}
+
+      {/* Spinning dashed ring */}
+      <motion.div
+        className="absolute w-48 h-48 md:w-72 md:h-72 rounded-full border-2 border-dashed border-blue-400/40"
+        animate={{ rotate: 360 }}
+        transition={{ duration: 8, repeat: Infinity, ease: 'linear' }}
+      />
+
+      {/* Main content */}
+      <div className="relative z-10 flex flex-col items-center">
+        {/* Letter-by-letter reveal */}
+        <div className="flex overflow-hidden mb-8">
+          {'BUILT'.split('').map((letter, i) => (
+            <motion.span
+              key={i}
+              initial={{ y: 100, opacity: 0, rotateX: -90 }}
+              animate={{
+                y: 0,
+                opacity: 1,
+                rotateX: 0,
+              }}
+              transition={{
+                duration: 0.6,
+                delay: i * 0.1,
+                ease: [0.215, 0.61, 0.355, 1],
+              }}
+              className="text-7xl md:text-9xl font-black"
+              style={{
+                background: 'linear-gradient(135deg, #3b82f6 0%, #60a5fa 50%, #93c5fd 100%)',
+                WebkitBackgroundClip: 'text',
+                WebkitTextFillColor: 'transparent',
+                textShadow: '0 0 40px rgba(59, 130, 246, 0.5)',
+              }}
+            >
+              {letter}
+            </motion.span>
+          ))}
+        </div>
+
+        {/* Tagline reveal */}
+        <motion.p
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.8, duration: 0.5 }}
+          className="text-white/40 text-sm tracking-[0.4em] uppercase mb-12"
+        >
+          Creatine Gummies
+        </motion.p>
+
+        {/* Progress bar container */}
+        <div className="relative w-72 md:w-96">
+          {/* Progress bar background */}
+          <div className="h-1 bg-white/10 rounded-full overflow-hidden">
+            <motion.div
+              className="h-full rounded-full relative"
+              style={{
+                background: 'linear-gradient(90deg, #3b82f6, #60a5fa, #3b82f6)',
+                backgroundSize: '200% 100%',
+              }}
+              initial={{ width: 0 }}
+              animate={{
+                width: `${Math.min(progress, 100)}%`,
+                backgroundPosition: ['0% 0%', '100% 0%'],
+              }}
+              transition={{
+                width: { duration: 0.1 },
+                backgroundPosition: { duration: 1, repeat: Infinity, ease: 'linear' },
+              }}
+            >
+              {/* Glow effect on progress bar */}
+              <div className="absolute right-0 top-1/2 -translate-y-1/2 w-4 h-4 bg-blue-400 rounded-full blur-md" />
+            </motion.div>
+          </div>
+
+          {/* Progress text and percentage */}
+          <div className="flex justify-between items-center mt-4">
+            <motion.span
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              className="text-white/30 text-xs font-mono tracking-wider"
+            >
+              {progress < 100 ? 'LOADING EXPERIENCE' : 'READY'}
+            </motion.span>
+            <motion.span
+              className="text-blue-400 font-mono text-lg font-bold"
+              animate={{
+                textShadow: progress >= 100
+                  ? ['0 0 10px rgba(59, 130, 246, 0.5)', '0 0 20px rgba(59, 130, 246, 0.8)', '0 0 10px rgba(59, 130, 246, 0.5)']
+                  : '0 0 10px rgba(59, 130, 246, 0.5)'
+              }}
+              transition={{ duration: 0.5, repeat: progress >= 100 ? Infinity : 0 }}
+            >
+              {Math.min(Math.round(progress), 100)}%
+            </motion.span>
+          </div>
+        </div>
+
+        {/* Enter prompt */}
+        <AnimatePresence>
+          {progress >= 100 && (
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="mt-8 flex items-center gap-2"
+            >
+              <motion.div
+                className="w-2 h-2 bg-blue-400 rounded-full"
+                animate={{ scale: [1, 1.5, 1], opacity: [1, 0.5, 1] }}
+                transition={{ duration: 1, repeat: Infinity }}
+              />
+              <span className="text-white/60 text-sm">Entering...</span>
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </div>
+
+      {/* Corner decorations */}
+      <div className="absolute top-8 left-8 w-16 h-16 border-l-2 border-t-2 border-blue-400/30" />
+      <div className="absolute top-8 right-8 w-16 h-16 border-r-2 border-t-2 border-blue-400/30" />
+      <div className="absolute bottom-8 left-8 w-16 h-16 border-l-2 border-b-2 border-blue-400/30" />
+      <div className="absolute bottom-8 right-8 w-16 h-16 border-r-2 border-b-2 border-blue-400/30" />
+
+      {/* Scan line effect */}
+      <motion.div
+        className="absolute left-0 right-0 h-px bg-gradient-to-r from-transparent via-blue-400/50 to-transparent"
+        animate={{ top: ['0%', '100%'] }}
+        transition={{ duration: 2, repeat: Infinity, ease: 'linear' }}
+      />
     </motion.div>
   )
 }
