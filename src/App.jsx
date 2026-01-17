@@ -611,7 +611,6 @@ function Navbar({ onShopNow }) {
 // Hero Section
 function Hero() {
   const containerRef = useRef(null)
-  const [show3D, setShow3D] = useState(false)
   const { scrollYProgress } = useScroll({
     target: containerRef,
     offset: ['start start', 'end start']
@@ -621,12 +620,6 @@ function Hero() {
   const opacity = useTransform(scrollYProgress, [0, 0.5], [1, 0])
   const scale = useTransform(scrollYProgress, [0, 0.5], [1, 0.8])
 
-  // Delay 3D canvas to prevent initial lag
-  useEffect(() => {
-    const timer = setTimeout(() => setShow3D(true), 500)
-    return () => clearTimeout(timer)
-  }, [])
-
   return (
     <motion.section
       ref={containerRef}
@@ -634,18 +627,16 @@ function Hero() {
       className="h-[200vh] relative"
     >
       <div className="sticky top-0 h-screen overflow-hidden bg-black">
-        {/* 3D Background - delayed load */}
+        {/* 3D Background */}
         <div className="absolute inset-0 z-0">
-          {show3D && (
-            <Canvas camera={{ position: [0, 0, 5], fov: 75 }}>
-              <Suspense fallback={null}>
-                <ambientLight intensity={0.5} />
-                <directionalLight position={[10, 10, 5]} intensity={1} />
-                <MorphingSphere />
-                <Environment preset="city" />
-              </Suspense>
-            </Canvas>
-          )}
+          <Canvas camera={{ position: [0, 0, 5], fov: 75 }}>
+            <Suspense fallback={null}>
+              <ambientLight intensity={0.5} />
+              <directionalLight position={[10, 10, 5]} intensity={1} />
+              <MorphingSphere />
+              <Environment preset="city" />
+            </Suspense>
+          </Canvas>
         </div>
 
         {/* Gradient overlays */}
@@ -703,7 +694,7 @@ function Hero() {
             <span className="text-blue-400">Blue Raspberry. 120 Gummies. Pure Power.</span>
           </motion.p>
 
-          {/* Scroll Indicator - Simplified for performance */}
+          {/* Scroll Indicator */}
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
