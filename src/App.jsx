@@ -517,20 +517,63 @@ function Hero() {
             <span className="text-blue-400">Blue Raspberry. 120 Gummies. Pure Power.</span>
           </motion.p>
 
-          {/* Scroll Indicator */}
+          {/* Scroll Indicator - Eye-catching */}
           <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 1.5 }}
-            className="absolute bottom-12 left-1/2 -translate-x-1/2"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 1.5, duration: 0.6 }}
+            className="absolute bottom-8 md:bottom-12 left-1/2 -translate-x-1/2"
           >
             <motion.div
-              animate={{ y: [0, 10, 0] }}
-              transition={{ duration: 1.5, repeat: Infinity }}
-              className="flex flex-col items-center gap-2"
+              animate={{ y: [0, 8, 0] }}
+              transition={{ duration: 1.5, repeat: Infinity, ease: 'easeInOut' }}
+              className="flex flex-col items-center gap-3 cursor-pointer group"
+              onClick={() => window.scrollTo({ top: window.innerHeight, behavior: 'smooth' })}
             >
-              <span className="text-xs tracking-[0.3em] text-white/40 uppercase">Scroll</span>
-              <div className="w-px h-16 bg-gradient-to-b from-blue-400 to-transparent" />
+              {/* Glowing mouse icon */}
+              <div className="relative">
+                <motion.div
+                  className="absolute inset-0 bg-blue-400 rounded-full blur-xl opacity-50"
+                  animate={{ scale: [1, 1.5, 1], opacity: [0.3, 0.6, 0.3] }}
+                  transition={{ duration: 2, repeat: Infinity }}
+                />
+                <div className="relative w-8 h-12 border-2 border-blue-400 rounded-full flex justify-center pt-2">
+                  <motion.div
+                    className="w-1.5 h-3 bg-blue-400 rounded-full"
+                    animate={{ y: [0, 8, 0], opacity: [1, 0.3, 1] }}
+                    transition={{ duration: 1.5, repeat: Infinity }}
+                  />
+                </div>
+              </div>
+
+              {/* Text with glow */}
+              <span className="text-sm font-semibold tracking-[0.2em] text-blue-400 uppercase group-hover:text-blue-300 transition-colors">
+                Scroll Down
+              </span>
+
+              {/* Animated chevrons */}
+              <div className="flex flex-col items-center -mt-1">
+                <motion.svg
+                  className="w-6 h-6 text-blue-400"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                  animate={{ y: [0, 4, 0], opacity: [0.5, 1, 0.5] }}
+                  transition={{ duration: 1, repeat: Infinity }}
+                >
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                </motion.svg>
+                <motion.svg
+                  className="w-6 h-6 text-blue-400 -mt-3"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                  animate={{ y: [0, 4, 0], opacity: [0.3, 0.7, 0.3] }}
+                  transition={{ duration: 1, repeat: Infinity, delay: 0.15 }}
+                >
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                </motion.svg>
+              </div>
             </motion.div>
           </motion.div>
         </motion.div>
