@@ -2527,7 +2527,13 @@ function MusicWidget() {
 
 // Main App
 function App() {
-  const [loading, setLoading] = useState(true)
+  // Skip loading screen on mobile for reliability
+  const [loading, setLoading] = useState(() => {
+    if (typeof window !== 'undefined') {
+      return window.innerWidth >= 768
+    }
+    return true
+  })
   const [checkoutOpen, setCheckoutOpen] = useState(false)
   const [quizOpen, setQuizOpen] = useState(false)
 
@@ -2541,7 +2547,7 @@ function App() {
 
   return (
     <>
-      {/* Loading screen overlays content - no AnimatePresence for reliability */}
+      {/* Loading screen - desktop only */}
       {loading && <LoadingScreen onComplete={() => setLoading(false)} />}
 
       <AnimatePresence>
