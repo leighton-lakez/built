@@ -2528,23 +2528,13 @@ function MusicWidget() {
 // Main App
 function App() {
   const [loading, setLoading] = useState(true)
-  const [showContent, setShowContent] = useState(false)
   const [checkoutOpen, setCheckoutOpen] = useState(false)
   const [quizOpen, setQuizOpen] = useState(false)
 
-  // Fallback for mobile - ensure content shows even if onExitComplete doesn't fire
-  useEffect(() => {
-    if (!loading && !showContent) {
-      const fallbackTimer = setTimeout(() => {
-        setShowContent(true)
-      }, 500)
-      return () => clearTimeout(fallbackTimer)
-    }
-  }, [loading, showContent])
-
   return (
     <>
-      <AnimatePresence mode="wait" onExitComplete={() => setShowContent(true)}>
+      {/* Loading screen overlays content */}
+      <AnimatePresence>
         {loading && <LoadingScreen key="loading" onComplete={() => setLoading(false)} />}
       </AnimatePresence>
 
@@ -2556,8 +2546,8 @@ function App() {
         {quizOpen && <FitnessQuiz isOpen={quizOpen} onClose={() => setQuizOpen(false)} />}
       </AnimatePresence>
 
-      {showContent && (
-        <div className="bg-black text-white min-h-screen md:cursor-none pb-24 md:pb-0">
+      {/* Content is always rendered, loading screen sits on top */}
+      <div className="bg-black text-white min-h-screen md:cursor-none pb-24 md:pb-0">
           <CustomCursor />
           <NoiseOverlay />
           <MusicWidget />
@@ -2573,7 +2563,6 @@ function App() {
           <BuySection onCheckout={() => setCheckoutOpen(true)} />
           <Footer />
         </div>
-      )}
     </>
   )
 }
