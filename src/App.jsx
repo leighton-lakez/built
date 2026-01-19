@@ -2531,12 +2531,18 @@ function App() {
   const [checkoutOpen, setCheckoutOpen] = useState(false)
   const [quizOpen, setQuizOpen] = useState(false)
 
+  // Hard fallback - force loading to end after 3 seconds no matter what
+  useEffect(() => {
+    const forceComplete = setTimeout(() => {
+      setLoading(false)
+    }, 3000)
+    return () => clearTimeout(forceComplete)
+  }, [])
+
   return (
     <>
-      {/* Loading screen overlays content */}
-      <AnimatePresence>
-        {loading && <LoadingScreen key="loading" onComplete={() => setLoading(false)} />}
-      </AnimatePresence>
+      {/* Loading screen overlays content - no AnimatePresence for reliability */}
+      {loading && <LoadingScreen onComplete={() => setLoading(false)} />}
 
       <AnimatePresence>
         {checkoutOpen && <CheckoutModal isOpen={checkoutOpen} onClose={() => setCheckoutOpen(false)} />}
