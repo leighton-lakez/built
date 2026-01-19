@@ -11,11 +11,15 @@ const PRODUCT_IMAGE = '/product.png'
 
 // Mobile detection hook
 function useIsMobile() {
-  const [isMobile, setIsMobile] = useState(false)
+  const [isMobile, setIsMobile] = useState(() => {
+    if (typeof window !== 'undefined') {
+      return window.innerWidth < 768
+    }
+    return false
+  })
 
   useEffect(() => {
     const check = () => setIsMobile(window.innerWidth < 768)
-    check()
     window.addEventListener('resize', check)
     return () => window.removeEventListener('resize', check)
   }, [])
@@ -417,6 +421,7 @@ function Navbar({ onShopNow }) {
 // Hero Section
 function Hero() {
   const containerRef = useRef(null)
+  const isMobile = useIsMobile()
   const { scrollYProgress } = useScroll({
     target: containerRef,
     offset: ['start start', 'end start']
@@ -433,17 +438,24 @@ function Hero() {
       className="h-[200vh] relative"
     >
       <div className="sticky top-0 h-screen overflow-hidden bg-black">
-        {/* 3D Background */}
-        <div className="absolute inset-0 z-0">
-          <Canvas camera={{ position: [0, 0, 5], fov: 75 }}>
-            <Suspense fallback={null}>
-              <ambientLight intensity={0.5} />
-              <directionalLight position={[10, 10, 5]} intensity={1} />
-              <MorphingSphere />
-              <Environment preset="city" />
-            </Suspense>
-          </Canvas>
-        </div>
+        {/* 3D Background - desktop only */}
+        {!isMobile && (
+          <div className="absolute inset-0 z-0">
+            <Canvas camera={{ position: [0, 0, 5], fov: 75 }}>
+              <Suspense fallback={null}>
+                <ambientLight intensity={0.5} />
+                <directionalLight position={[10, 10, 5]} intensity={1} />
+                <MorphingSphere />
+                <Environment preset="city" />
+              </Suspense>
+            </Canvas>
+          </div>
+        )}
+
+        {/* Mobile background fallback */}
+        {isMobile && (
+          <div className="absolute inset-0 z-0 bg-gradient-to-br from-blue-900/20 via-black to-black" />
+        )}
 
         {/* Gradient overlays */}
         <div className="absolute inset-0 bg-gradient-to-b from-black via-transparent to-black z-10" />
